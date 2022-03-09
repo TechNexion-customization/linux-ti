@@ -1,0 +1,183 @@
+// SPDX-License-Identifier: GPL-2.0
+/**
+ * DT Overlay for Technexion AR series camera interfaced with CSI2 on J721E-EAIK board.
+ *
+ * Copyright (C) 2022 Technexion Ltd.
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/pinctrl/k3.h>
+
+&main_pmx0 {
+	main_rpi_cam0_pins_default: main-rpi-cam0-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x1D4, PIN_OUTPUT, 7) /* (Y3) SPI1_CS0 */
+			J721E_IOPAD(0x1D8, PIN_OUTPUT, 7) /* (W4) SPI1_CS1 */
+
+		>;
+	};
+
+	main_rpi_cam1_pins_default: main-rpi-cam1-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x1E0, PIN_OUTPUT, 7) /* (Y5) SPI1_D0 */
+			J721E_IOPAD(0x1E4, PIN_OUTPUT, 7) /* (Y2) SPI1_D1 */
+
+		>;
+	};
+
+	main_csi_mux_sel2_pins_default: main-csi-mux-sel2-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x164, PIN_OUTPUT, 7) /* (V29) RGMII5_TD2 */
+		>;
+	};
+};
+
+&main_gpio0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_csi_mux_sel2_pins_default>;
+
+	csi-mux-hog {
+		/* CSI_MUX_SEL_2 */
+		gpio-hog;
+		gpios = <88 GPIO_ACTIVE_HIGH>;
+		output-high;
+		line-name = "CSI_MUX_SEL_2";
+	};
+};
+
+&main_i2c3 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	i2c-switch@70 {
+		compatible = "nxp,pca9543";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		reg = <0x70>;
+
+		i2c-alias-pool = /bits/ 16 <0x10 0x11>;
+
+		/* CAM0 I2C */
+		cam0_i2c: i2c@0 {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0>;
+
+			pca9554_0: pca9554_0@21 {
+				compatible = "nxp,pca9554";
+				reg = <0x21>;
+				gpio-controller;
+				#gpio-cells = <2>;
+				status = "okay";
+			};
+
+			tevi_ap1302_otp_0: tevi_ap1302_otpi_0@54 {
+				compatible = "atmel,24c1024";
+				reg = <0x54>;
+				pagesize = <128>;
+				status = "okay";
+			};
+
+			ap1302_0: ap1302_0@3d {
+				compatible = "tn,tevi-ap1302";
+				reg = <0x3d>;
+
+				pinctrl-names = "default";
+				pinctrl-0 = <&main_rpi_cam0_pins_default>;
+
+				host-power-gpios = <&main_gpio0 116 GPIO_ACTIVE_HIGH>;
+				reset-gpios = <&main_gpio0 117 GPIO_ACTIVE_HIGH>;
+				device-power-gpios = <&pca9554_0 0 GPIO_ACTIVE_HIGH>;
+				standby-gpios = <&pca9554_0 2 GPIO_ACTIVE_HIGH>;
+
+				nvmem = <&tevi_ap1302_otp_0>;
+				nvmem-names = "calib-data";
+				data-lanes = <2>;
+				continuous-clock = <0>;
+				status = "okay";
+
+
+				port {
+					csi2_cam0: endpoint {
+						remote-endpoint = <&csi2rx0_in_sensor>;
+						clock-lanes = <0>;
+						data-lanes = <1 2>;
+					};
+				};
+			};
+		};
+
+		/* CAM1 I2C */
+		cam1_i2c: i2c@1 {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <1>;
+
+			pca9554_1: pca9554_1@21 {
+				compatible = "nxp,pca9554";
+				reg = <0x21>;
+				gpio-controller;
+				#gpio-cells = <2>;
+				status = "okay";
+			};
+
+			tevi_ap1302_otp_1: tevi_ap1302_otp_1@54 {
+				compatible = "atmel,24c1024";
+				reg = <0x54>;
+				pagesize = <128>;
+				status = "okay";
+			};
+
+			ap1302_1: ap1302_1@3d {
+				compatible = "tn,tevi-ap1302";
+				reg = <0x3d>;
+
+				pinctrl-names = "default";
+				pinctrl-0 = <&main_rpi_cam1_pins_default>;
+
+				host-power-gpios = <&main_gpio0 119 GPIO_ACTIVE_HIGH>;
+				reset-gpios = <&main_gpio0 120 GPIO_ACTIVE_HIGH>;
+				device-power-gpios = <&pca9554_1 0 GPIO_ACTIVE_HIGH>;
+				standby-gpios = <&pca9554_1 2 GPIO_ACTIVE_HIGH>;
+
+				nvmem = <&tevi_ap1302_otp_1>;
+				nvmem-names = "calib-data";
+				data-lanes = <2>;
+				continuous-clock = <0>;
+				status = "okay";
+
+				port {
+					csi2_cam1: endpoint {
+						remote-endpoint = <&csi2rx1_in_sensor>;
+						clock-lanes = <0>;
+						data-lanes = <1 2>;
+					};
+				};
+			};
+		};
+	};
+};
+
+&csi0_port0 {
+	status = "okay";
+	csi2rx0_in_sensor: endpoint {
+		remote-endpoint = <&csi2_cam0>;
+		bus-type = <4>; /* CSI2 DPHY. */
+		clock-lanes = <0>;
+		data-lanes = <1 2>;
+	};
+};
+
+&csi1_port0 {
+	status = "okay";
+	csi2rx1_in_sensor: endpoint {
+		remote-endpoint = <&csi2_cam1>;
+		bus-type = <4>; /* CSI2 DPHY. */
+		clock-lanes = <0>;
+		data-lanes = <1 2>;
+	};
+};
