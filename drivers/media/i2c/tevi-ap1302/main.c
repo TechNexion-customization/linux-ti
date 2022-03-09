@@ -399,13 +399,6 @@ static int ops_enum_frame_interval(struct v4l2_subdev *sub_dev,
 	return 0;
 }
 
-static int ops_media_link_setup(struct media_entity *entity,
-				const struct media_pad *local,
-				const struct media_pad *remote, u32 flags)
-{
-	return 0;
-}
-
 static const struct v4l2_subdev_core_ops sensor_v4l2_subdev_core_ops = {
 	.s_power = ops_power,
 	.init = ops_init,
@@ -429,10 +422,6 @@ static const struct v4l2_subdev_ops sensor_subdev_ops = {
 	.core = &sensor_v4l2_subdev_core_ops,
 	.video = &sensor_v4l2_subdev_video_ops,
 	.pad = &sensor_v4l2_subdev_pad_ops,
-};
-
-static const struct media_entity_operations sensor_media_entity_ops = {
-	.link_setup = ops_media_link_setup,
 };
 
 static int sensor_standby(struct i2c_client *client, int enable)
@@ -719,7 +708,6 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 			     instance->i2c_client, &sensor_subdev_ops);
 	//instance->v4l2_subdev.flags |= V4L2_SUBDEV_FL_HAS_EVENTS;
 	instance->pad.flags = MEDIA_PAD_FL_SOURCE;
-	instance->v4l2_subdev.entity.ops = &sensor_media_entity_ops;
 	instance->v4l2_subdev.entity.function = MEDIA_ENT_F_CAM_SENSOR;
 	ret = media_entity_pads_init(&instance->v4l2_subdev.entity, 1, &instance->pad);
 	ret += v4l2_async_register_subdev(&instance->v4l2_subdev);
