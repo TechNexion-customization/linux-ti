@@ -796,17 +796,41 @@
 		reg = <0x70>;
 
 		/* CAM0 I2C */
-		ti_cam0_i2c: i2c@0 {
+		cam0_i2c: i2c@0 {
 			#address-cells = <1>;
 			#size-cells = <0>;
 			reg = <0>;
+
+			pca9554_0: pca9554_0@21 {
+				status = "disabled";
+			};
+
+			tevi_ap1302_otp_0: tevi_ap1302_otp_0@54 {
+				status = "disabled";
+			};
+
+			ap1302_0: ap1302_0@3d {
+				status = "disabled";
+			};
 		};
 
 		/* CAM1 I2C */
-		rpi_cam0_i2c: i2c@1 {
+		cam1_i2c: i2c@1 {
 			#address-cells = <1>;
 			#size-cells = <0>;
 			reg = <1>;
+
+			pca9554_1: pca9554_1@21 {
+				status = "disabled";
+			};
+
+			tevi_ap1302_otp_1: tevi_ap1302_otp_1@54 {
+				status = "disabled";
+			};
+
+			ap1302_1: ap1302_1@3d {
+				status = "disabled";
+			};
 		};
 	};
 };
