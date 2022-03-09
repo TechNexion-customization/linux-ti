@@ -10,6 +10,9 @@
 #include <media/v4l2-subdev.h>
 #include "otp_flash.h"
 
+/* Pixel rate is fixed at 61.43M for all the modes */
+#define AP1302_PIXEL_RATE		61430400
+
 struct sensor {
 	struct v4l2_subdev v4l2_subdev;
 	struct media_pad pad;
@@ -23,6 +26,10 @@ struct sensor {
 	u8 selected_mode;
 	u8 selected_sensor;
 	char *sensor_name;
+
+	/* V4L2 Controls */
+	struct v4l2_ctrl_handler ctrl_handler;
+	struct v4l2_ctrl *pixel_rate;
 };
 
 struct resolution {
@@ -277,6 +284,16 @@ static int ops_set_stream(struct v4l2_subdev *sub_dev, int enable)
 
 	return ret;
 }
+
+static int main_set_ctrl(struct v4l2_ctrl *ctrl) {
+
+	return 0;
+}
+
+
+static const struct v4l2_ctrl_ops main_ctrl_ops = {
+	.s_ctrl = main_set_ctrl,
+};
 
 static int ops_enum_mbus_code(struct v4l2_subdev *sub_dev,
 			      struct v4l2_subdev_state *sd_state,
@@ -614,6 +631,35 @@ static int sensor_load_bootdata(struct sensor *instance)
 	return 0;
 }
 
+
+
+static int sensor_init_controls(struct sensor *instance)
+{
+	int ret;
+	struct v4l2_ctrl_handler *ctrl_hdlr;
+
+
+	ctrl_hdlr = &instance->ctrl_handler;
+	ret = v4l2_ctrl_handler_init(ctrl_hdlr, 32);
+	if (ret)
+		return ret;
+
+
+	instance->pixel_rate = v4l2_ctrl_new_std(ctrl_hdlr, &main_ctrl_ops,
+		V4L2_CID_PIXEL_RATE,
+		AP1302_PIXEL_RATE,
+		AP1302_PIXEL_RATE, 1,
+		AP1302_PIXEL_RATE);
+
+	instance->pixel_rate->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+
+	instance->v4l2_subdev.ctrl_handler = ctrl_hdlr;
+
+	//v4l2_ctrl_handler_free(ctrl_hdlr);
+	return 0;
+}
+
+
 static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *id)
 {
 	struct sensor *instance = NULL;
@@ -649,6 +695,8 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 		dev_err(dev, "get gpio object failed\n");
 		return -EINVAL;
 	}
+
+	sensor_init_controls(instance);
 
 	data_lanes = 4;
 	if (of_property_read_u32(dev->of_node, "data-lanes", &data_lanes) == 0) {
