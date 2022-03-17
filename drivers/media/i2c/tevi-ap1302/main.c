@@ -10,9 +10,6 @@
 #include <media/v4l2-subdev.h>
 #include "otp_flash.h"
 
-/* Pixel rate is fixed at 61.43M for all the modes */
-#define AP1302_PIXEL_RATE		61430400
-
 struct sensor {
 	struct v4l2_subdev v4l2_subdev;
 	struct media_pad pad;
@@ -633,7 +630,7 @@ static int sensor_load_bootdata(struct sensor *instance)
 
 
 
-static int sensor_init_controls(struct sensor *instance)
+static int sensor_init_controls(struct sensor *instance, int pixel_rate)
 {
 	int ret;
 	struct v4l2_ctrl_handler *ctrl_hdlr;
@@ -645,11 +642,13 @@ static int sensor_init_controls(struct sensor *instance)
 		return ret;
 
 
+	printk("pixel_rate = %d\n", pixel_rate);
+
 	instance->pixel_rate = v4l2_ctrl_new_std(ctrl_hdlr, &main_ctrl_ops,
 		V4L2_CID_PIXEL_RATE,
-		AP1302_PIXEL_RATE,
-		AP1302_PIXEL_RATE, 1,
-		AP1302_PIXEL_RATE);
+		pixel_rate,
+		pixel_rate, 1,
+		pixel_rate);
 
 	instance->pixel_rate->flags |= V4L2_CTRL_FLAG_READ_ONLY;
 
@@ -668,6 +667,7 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 	struct header_ver2 *header;
 	int data_lanes;
 	int continuous_clock;
+	int pixel_rate;
 	int i;
 	int ret;
 
@@ -696,7 +696,15 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 		return -EINVAL;
 	}
 
-	sensor_init_controls(instance);
+	pixel_rate = 0;
+	if (of_property_read_u32(dev->of_node, "pixel-rate", &pixel_rate) == 0) {
+		if ((pixel_rate < 0)) {
+			dev_err(dev, "value of 'pixel-rate' property is invaild\n");
+			pixel_rate = 0;
+		}
+	}
+
+	sensor_init_controls(instance, pixel_rate);
 
 	data_lanes = 4;
 	if (of_property_read_u32(dev->of_node, "data-lanes", &data_lanes) == 0) {
@@ -754,7 +762,7 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 
 	v4l2_i2c_subdev_init(&instance->v4l2_subdev,
 			     instance->i2c_client, &sensor_subdev_ops);
-	//instance->v4l2_subdev.flags |= V4L2_SUBDEV_FL_HAS_EVENTS;
+	instance->v4l2_subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE | V4L2_SUBDEV_FL_HAS_EVENTS;
 	instance->pad.flags = MEDIA_PAD_FL_SOURCE;
 	instance->v4l2_subdev.entity.function = MEDIA_ENT_F_CAM_SENSOR;
 	ret = media_entity_pads_init(&instance->v4l2_subdev.entity, 1, &instance->pad);
@@ -767,6 +775,7 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 	////set something reference from DevX tool register log
 	//cntx select 'Video'
 	sensor_i2c_write_16b(instance->i2c_client, 0x1184, 1); //ATOMIC
+
 	sensor_i2c_write_16b(instance->i2c_client, 0x1000, 0); //CTRL
 	sensor_i2c_write_16b(instance->i2c_client, 0x1184, 0xb); //ATOMIC
 	msleep(1);
