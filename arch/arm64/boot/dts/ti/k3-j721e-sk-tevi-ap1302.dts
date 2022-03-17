@@ -96,6 +96,7 @@
 
 				nvmem = <&tevi_ap1302_otp_0>;
 				nvmem-names = "calib-data";
+				pixel-rate = <61430400>; /* 61.43MHz */
 				data-lanes = <2>;
 				continuous-clock = <0>;
 				status = "okay";
