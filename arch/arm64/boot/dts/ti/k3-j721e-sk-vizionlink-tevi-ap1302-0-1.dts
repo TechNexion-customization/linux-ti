@@ -1,0 +1,116 @@
+// SPDX-License-Identifier: GPL-2.0
+/**
+ * DT Overlay for Technexion AR series camera interfaced with CSI2 on J721E-EAIK board.
+ *
+ * Copyright (C) 2022 Technexion Ltd.
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/pinctrl/k3.h>
+
+
+
+&ds90ub960_ports {
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	/* FPDLink RX 1 */
+	port@1 {
+		reg = <1>;
+
+		ds90ub960_fpd3_in: endpoint {
+			remote-endpoint = <&ub953_out>;
+
+			mode = <3>;
+			bc-freq = <50000000>;
+
+			serializer: remote-chip {
+				compatible = "ti,ds90ub953-q1";
+
+				gpio-controller;
+				#gpio-cells = <2>;
+
+				ports {
+					#address-cells = <1>;
+					#size-cells = <0>;
+
+					port@0 {
+						reg = <0>;
+						ub953_in: endpoint@0 {
+							remote-endpoint = <&sensor_out>;
+						};
+					};
+
+					port@1 {
+						reg = <1>;
+
+						ub953_out: endpoint@0 {
+							remote-endpoint = <&ds90ub960_fpd3_in>;
+						};
+					};
+				};
+			};
+		};
+	};
+};
+
+&ds90ub960_atr {
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	i2c@1 {
+		reg = <1>;
+
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		vizionlink_tevi_ap1302_otp_1: vizionlink_tevi_ap1302_otp_1@54 {
+			compatible = "atmel,24c1024";
+			reg = <0x54>;
+			pagesize = <128>;
+			status = "okay";
+
+		};
+
+		vizionlink_pca9554_1: vizionlink_pca9554_1@25 {
+			compatible = "nxp,pca9554";
+			reg = <0x25>;
+			gpio-controller;
+			#gpio-cells = <2>;
+			status = "okay";
+		};
+
+		sensor@3d {
+			compatible = "tn,tevi-ap1302";
+			reg = <0x3d>;
+
+			host-power-gpios = <&vizionlink_pca9554_1 7 GPIO_ACTIVE_HIGH>;
+			reset-gpios = <&vizionlink_pca9554_1 4 GPIO_ACTIVE_HIGH>;
+			device-power-gpios = <&vizionlink_pca9554_1 0 GPIO_ACTIVE_HIGH>;
+			standby-gpios = <&vizionlink_pca9554_1 2 GPIO_ACTIVE_HIGH>;
+
+			nvmem = <&vizionlink_tevi_ap1302_otp_1>;
+			nvmem-names = "calib-data";
+			pixel-rate = <614304000>; /* 184.29MHz */
+			data-lanes = <2>;
+			continuous-clock = <0>;
+			status = "okay";
+
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+				sensor_out: endpoint {
+					remote-endpoint = <&ub953_in>;
+				};
+			};
+
+		};
+
+	};
+};

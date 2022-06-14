@@ -812,6 +812,91 @@
 			ap1302_0: ap1302_0@3d {
 				status = "disabled";
 			};
+
+/*			vizionlink_0: vizionlink_0@31 {
+				reg = <0x31>;
+				status = "disabled";
+
+				i2c_dev_list {
+					#address-cells = <1>;
+					#size-cells = <0>;
+
+					vizionlink_pca9554_a25_0: vizionlink_pca9554@26 {
+						reg = <0x26>;
+						status = "disabled";
+					};
+
+					vizionlink_tevi_ap1302_otp_0: vizionlink_tevi_ap1302_otp_0@54 {
+						reg = <0x54>;
+						status = "disabled";
+					};
+
+					vizionlink_ap1302_0: vizionlink_ap1302_0@3e {
+						reg = <0x3e>;
+						status = "disabled";
+					};
+
+					sensor@3e {
+						reg = <0x3e>;
+						status = "disabled";
+					};
+
+
+				};
+			};
+*/
+			deser@30 {
+				reg = <0x30>;
+				status = "disabled";
+
+				ds90ub960_ports: ports {
+					#address-cells = <1>;
+					#size-cells = <0>;
+				};
+
+				ds90ub960_atr: i2c-atr {
+					#address-cells = <1>;
+					#size-cells = <0>;
+					status = "disabled";
+
+					i2c@0 {
+						reg = <0>;
+						#address-cells = <1>;
+						#size-cells = <0>;
+
+						vizionlink_tevi_ap1302_otp_0: vizionlink_tevi_ap1302_otp_0@54 {
+							status = "disabled";
+						};
+
+						vizionlink_pca9554_0: vizionlink_pca9554_0@25 {
+							status = "disabled";
+						};
+
+						sensor@3d {
+							status = "disabled";
+						};
+					};
+
+					i2c@1 {
+						reg = <1>;
+						#address-cells = <1>;
+						#size-cells = <0>;
+
+						vizionlink_tevi_ap1302_otp_1: vizionlink_tevi_ap1302_otp_1@54 {
+							status = "disabled";
+						};
+
+						vizionlink_pca9554_1: vizionlink_pca9554_1@25 {
+							status = "disabled";
+						};
+
+						sensor@3d {
+							status = "disabled";
+						};
+					};
+
+				};
+			};
 		};
 
 		/* CAM1 I2C */
