@@ -774,7 +774,7 @@ static int at24_probe(struct i2c_client *client)
 		pm_runtime_disable(dev);
 		if (!pm_runtime_status_suspended(dev))
 			regulator_disable(at24->vcc_reg);
-		return -ENODEV;
+		return -EPROBE_DEFER;
 	}
 
 	pm_runtime_idle(dev);
@@ -846,6 +846,7 @@ static int __init at24_init(void)
 	return i2c_add_driver(&at24_driver);
 }
 module_init(at24_init);
+
 
 static void __exit at24_exit(void)
 {
