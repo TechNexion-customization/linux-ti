@@ -292,6 +292,132 @@ static const struct v4l2_ctrl_ops main_ctrl_ops = {
 	.s_ctrl = main_set_ctrl,
 };
 
+static void ops_init_formats(struct v4l2_subdev_state *state)
+{
+	struct v4l2_mbus_framefmt *format;
+
+	format = v4l2_state_get_stream_format(state, 0, 0);
+	format->code = MEDIA_BUS_FMT_UYVY8_2X8;
+	format->width = 1280;
+	format->height = 800;
+	format->field = V4L2_FIELD_NONE;
+	format->colorspace = V4L2_COLORSPACE_SRGB;
+}
+
+static int _ap1302_set_routing(struct v4l2_subdev *sd,
+                              struct v4l2_subdev_state *state)
+{
+	struct v4l2_subdev_route routes[] = {
+		{
+			.source_pad = 0,
+			.source_stream = 0,
+			.flags = V4L2_SUBDEV_ROUTE_FL_IMMUTABLE |
+				V4L2_SUBDEV_ROUTE_FL_SOURCE |
+				V4L2_SUBDEV_ROUTE_FL_ACTIVE,
+		},
+		{
+			.source_pad = 0,
+			.source_stream = 1,
+			.flags = V4L2_SUBDEV_ROUTE_FL_IMMUTABLE |
+				V4L2_SUBDEV_ROUTE_FL_SOURCE,
+		}
+	};
+
+	struct v4l2_subdev_krouting routing = {
+		.num_routes = ARRAY_SIZE(routes),
+		.routes = routes,
+	};
+
+	int ret;
+
+	ret = v4l2_subdev_set_routing(sd, state, &routing);
+	if (ret < 0)
+		return ret;
+
+	ops_init_formats(state);
+
+	return 0;
+}
+
+static int ops_init_cfg(struct v4l2_subdev *sd,
+                          struct v4l2_subdev_state *state)
+{
+	int ret;
+
+	v4l2_subdev_lock_state(state);
+
+	ret = _ap1302_set_routing(sd, state);
+
+	v4l2_subdev_unlock_state(state);
+
+	return ret;
+}
+
+static int ops_get_frame_desc(struct v4l2_subdev *sd, unsigned int pad,
+                                struct v4l2_mbus_frame_desc *fd)
+{
+	struct v4l2_subdev_state *state;
+	struct v4l2_mbus_framefmt *fmt;
+	u32 bpp;
+	int ret = 0;
+
+	if (pad != 0)
+		return -EINVAL;
+
+	state = v4l2_subdev_lock_active_state(sd);
+
+	fmt = v4l2_state_get_stream_format(state, 0, 0);
+	if (!fmt) {
+		ret = -EPIPE;
+		goto out;
+	}
+
+	memset(fd, 0, sizeof(*fd));
+
+	fd->type = V4L2_MBUS_FRAME_DESC_TYPE_CSI2;
+
+	/* pixel stream */
+
+	bpp = 8;
+
+	fd->entry[fd->num_entries].stream = 0;
+
+	fd->entry[fd->num_entries].flags = V4L2_MBUS_FRAME_DESC_FL_LEN_MAX;
+	fd->entry[fd->num_entries].length = fmt->width * fmt->height * bpp / 8;
+	fd->entry[fd->num_entries].pixelcode = fmt->code;
+	fd->entry[fd->num_entries].bus.csi2.vc = 1;
+	fd->entry[fd->num_entries].bus.csi2.dt = 0x1e; /* SRGB */
+
+	fd->num_entries++;
+
+out:
+	v4l2_subdev_unlock_state(state);
+
+	return ret;
+}
+
+static int ops_set_routing(struct v4l2_subdev *sd,
+                             struct v4l2_subdev_state *state,
+                             enum v4l2_subdev_format_whence which,
+                             struct v4l2_subdev_krouting *routing)
+{
+	int ret;
+
+	if (routing->num_routes == 0 || routing->num_routes > 1)
+		return -EINVAL;
+
+	v4l2_subdev_lock_state(state);
+
+	ret = _ap1302_set_routing(sd, state);
+	v4l2_subdev_lock_state(state);
+
+	ret = _ap1302_set_routing(sd, state);
+
+	v4l2_subdev_unlock_state(state);
+
+	return ret;
+}
+
 static int ops_enum_mbus_code(struct v4l2_subdev *sub_dev,
 			      struct v4l2_subdev_state *sd_state,
 			      struct v4l2_subdev_mbus_code_enum *code)
@@ -425,11 +551,14 @@ static const struct v4l2_subdev_video_ops sensor_v4l2_subdev_video_ops = {
 	.s_stream = ops_set_stream,
 };
 static const struct v4l2_subdev_pad_ops sensor_v4l2_subdev_pad_ops = {
+	.init_cfg = ops_init_cfg,
 	.enum_mbus_code = ops_enum_mbus_code,
 	.get_fmt = ops_get_fmt,
 	.set_fmt = ops_set_fmt,
 	.enum_frame_size = ops_enum_frame_size,
 	.enum_frame_interval = ops_enum_frame_interval,
+	.set_routing = ops_set_routing,
+	.get_frame_desc	= ops_get_frame_desc,
 };
 
 static const struct v4l2_subdev_ops sensor_subdev_ops = {
@@ -637,12 +766,9 @@ static int sensor_init_controls(struct sensor *instance, int pixel_rate)
 
 
 	ctrl_hdlr = &instance->ctrl_handler;
-	ret = v4l2_ctrl_handler_init(ctrl_hdlr, 32);
+	ret = v4l2_ctrl_handler_init(ctrl_hdlr, 9);
 	if (ret)
 		return ret;
-
-
-	printk("pixel_rate = %d\n", pixel_rate);
 
 	instance->pixel_rate = v4l2_ctrl_new_std(ctrl_hdlr, &main_ctrl_ops,
 		V4L2_CID_PIXEL_RATE,
@@ -732,7 +858,7 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 	instance->otp_flash_instance = ap1302_otp_flash_init(dev);
 	if(IS_ERR(instance->otp_flash_instance)) {
 		dev_err(dev, "otp flash init failed\n");
-		return -EINVAL;
+		return -EPROBE_DEFER;
 	}
 
 	header = instance->otp_flash_instance->header_data;
@@ -762,10 +888,15 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 
 	v4l2_i2c_subdev_init(&instance->v4l2_subdev,
 			     instance->i2c_client, &sensor_subdev_ops);
-	instance->v4l2_subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE | V4L2_SUBDEV_FL_HAS_EVENTS;
+	instance->v4l2_subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE | V4L2_SUBDEV_FL_HAS_EVENTS | V4L2_SUBDEV_FL_MULTIPLEXED;
 	instance->pad.flags = MEDIA_PAD_FL_SOURCE;
 	instance->v4l2_subdev.entity.function = MEDIA_ENT_F_CAM_SENSOR;
 	ret = media_entity_pads_init(&instance->v4l2_subdev.entity, 1, &instance->pad);
+
+	ret = v4l2_subdev_init_finalize(&instance->v4l2_subdev);
+	if (ret < 0)
+		return -EINVAL;
+
 	ret += v4l2_async_register_subdev(&instance->v4l2_subdev);
 	if (ret != 0) {
 		dev_err(&instance->i2c_client->dev, "v4l2 register failed\n");
@@ -829,7 +960,12 @@ static struct i2c_driver sensor_i2c_driver = {
 	.id_table = sensor_id,
 };
 
-module_i2c_driver(sensor_i2c_driver);
+static int __init sensor_i2c_init(void)
+{
+	return i2c_add_driver(&sensor_i2c_driver);
+}
+late_initcall(sensor_i2c_init);
+
 
 MODULE_AUTHOR("TECHNEXION Inc.");
 MODULE_DESCRIPTION("TechNexion driver for TEVI-AR Series");

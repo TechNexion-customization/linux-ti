@@ -293,7 +293,6 @@ static int ub953_s_stream(struct v4l2_subdev *sd, int enable)
 	int ret;
 
 	priv->streaming = enable;
-
 	ret = v4l2_subdev_call(priv->source_sd, video, s_stream, enable);
 	if (ret && enable)
 		priv->streaming = false;
@@ -310,13 +309,13 @@ static int _ub953_set_routing(struct v4l2_subdev *sd,
 			     struct v4l2_subdev_krouting *routing)
 {
 	const struct v4l2_mbus_framefmt format = {
-		.width = 640,
-		.height = 480,
+		.width = 1280,
+		.height = 800,
 		.code = MEDIA_BUS_FMT_UYVY8_2X8,
 		.field = V4L2_FIELD_NONE,
 		.colorspace = V4L2_COLORSPACE_SRGB,
 		.ycbcr_enc = V4L2_YCBCR_ENC_601,
-		.quantization = V4L2_QUANTIZATION_LIM_RANGE,
+		.quantization = V4L2_QUANTIZATION_FULL_RANGE,
 		.xfer_func = V4L2_XFER_FUNC_SRGB,
 	};
 	int ret;
@@ -928,8 +927,8 @@ static int ub953_probe(struct i2c_client *client)
 	ub953_write(priv, UB953_REG_CLKOUT_CTRL1, 0x25); /* N */
 
 	ub953_write(priv, UB953_REG_GENERAL_CFG,
-		    (1 << 6) | /* continuous clk */
-		    (3 << 4) | /* 4 lanes */
+		    (0 << 6) | /* non continuous clk */
+		    (1 << 4) | /* 4 lanes */
 		    (1 << 1)); /* CRC TX gen */
 
 	dev_dbg(dev, "Successfully probed\n");
@@ -997,7 +996,6 @@ static struct i2c_driver ds90ub953_driver = {
 		.of_match_table = of_match_ptr(ub953_dt_ids),
 	},
 };
-
 module_i2c_driver(ds90ub953_driver);
 
 MODULE_LICENSE("GPL");

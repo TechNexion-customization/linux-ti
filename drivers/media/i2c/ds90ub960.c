@@ -31,7 +31,7 @@
 #define UB960_MAX_TX_NPORTS	2
 #define UB960_MAX_NPORTS	(UB960_MAX_RX_NPORTS + UB960_MAX_TX_NPORTS)
 
-#define UB960_NUM_SLAVE_ALIASES	8
+#define UB960_NUM_SLAVE_ALIASES	16
 #define UB960_MAX_POOL_ALIASES	(UB960_MAX_RX_NPORTS * UB960_NUM_SLAVE_ALIASES)
 
 /*
@@ -1311,6 +1311,7 @@ static int ub960_start_streaming(struct ub960_data *priv)
 			csi_ctl |= UB960_TR_CSI_CTL_CSI_CAL_EN;
 
 		csi_ctl |= (4 - txport->num_data_lanes) << 4;
+		csi_ctl |= (0) << 1; // non-continuous mode
 
 		ub960_csiport_write(priv, nport, UB960_TR_CSI_CTL, csi_ctl);
 	}
@@ -1448,13 +1449,13 @@ static int _ub960_set_routing(struct v4l2_subdev *sd,
 			     struct v4l2_subdev_krouting *routing)
 {
 	const struct v4l2_mbus_framefmt format = {
-		.width = 640,
-		.height = 480,
+		.width = 1280,
+		.height = 800,
 		.code = MEDIA_BUS_FMT_UYVY8_2X8,
 		.field = V4L2_FIELD_NONE,
 		.colorspace = V4L2_COLORSPACE_SRGB,
 		.ycbcr_enc = V4L2_YCBCR_ENC_601,
-		.quantization = V4L2_QUANTIZATION_LIM_RANGE,
+		.quantization = V4L2_QUANTIZATION_FULL_RANGE,
 		.xfer_func = V4L2_XFER_FUNC_SRGB,
 	};
 	int ret;
@@ -2372,7 +2373,6 @@ static struct i2c_driver ds90ub960_driver = {
 		.of_match_table = of_match_ptr(ub960_dt_ids),
 	},
 };
-
 module_i2c_driver(ds90ub960_driver);
 
 MODULE_LICENSE("GPL");
