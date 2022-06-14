@@ -443,13 +443,13 @@ static int _ub953_set_routing(struct v4l2_subdev *sd,
 			     struct v4l2_subdev_krouting *routing)
 {
 	const struct v4l2_mbus_framefmt format = {
-		.width = 640,
-		.height = 480,
+		.width = 1280,
+		.height = 800,
 		.code = MEDIA_BUS_FMT_UYVY8_2X8,
 		.field = V4L2_FIELD_NONE,
 		.colorspace = V4L2_COLORSPACE_SRGB,
 		.ycbcr_enc = V4L2_YCBCR_ENC_601,
-		.quantization = V4L2_QUANTIZATION_LIM_RANGE,
+		.quantization = V4L2_QUANTIZATION_FULL_RANGE,
 		.xfer_func = V4L2_XFER_FUNC_SRGB,
 	};
 	int ret;
