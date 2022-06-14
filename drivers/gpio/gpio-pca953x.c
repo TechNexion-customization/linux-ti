@@ -1028,6 +1028,7 @@ static int pca953x_probe(struct i2c_client *client,
 	if (IS_ERR(chip->regmap)) {
 		ret = PTR_ERR(chip->regmap);
 		goto err_exit;
+
 	}
 
 	regcache_mark_dirty(chip->regmap);
@@ -1064,7 +1065,7 @@ static int pca953x_probe(struct i2c_client *client,
 		ret = device_pca957x_init(chip, invert);
 	}
 	if (ret)
-		goto err_exit;
+		return -EPROBE_DEFER;
 
 	ret = pca953x_irq_setup(chip, irq_base);
 	if (ret)
