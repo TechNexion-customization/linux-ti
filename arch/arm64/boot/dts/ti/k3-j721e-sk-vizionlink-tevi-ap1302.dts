@@ -1,0 +1,147 @@
+// SPDX-License-Identifier: GPL-2.0
+/**
+ * DT Overlay for Technexion AR series camera interfaced with CSI2 on J721E-EAIK board.
+ *
+ * Copyright (C) 2022 Technexion Ltd.
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/pinctrl/k3.h>
+
+&main_pmx0 {
+	main_rpi_cam0_pins_default: main-rpi-cam0-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x1D4, PIN_OUTPUT, 7) /* (Y3) SPI1_CS0 */
+			J721E_IOPAD(0x1D8, PIN_OUTPUT, 7) /* (W4) SPI1_CS1 */
+		>;
+	};
+
+	main_csi_mux_sel2_pins_default: main-csi-mux-sel2-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x164, PIN_OUTPUT, 7) /* (V29) RGMII5_TD2 */
+		>;
+	};
+};
+
+&main_gpio0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_csi_mux_sel2_pins_default>;
+
+	csi-mux-hog {
+		/* CSI_MUX_SEL_2 */
+		gpio-hog;
+		gpios = <88 GPIO_ACTIVE_HIGH>;
+		output-high;
+		line-name = "CSI_MUX_SEL_2";
+	};
+};
+
+
+&ds90ub960_ports {
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	/* FPDLink RX 0 */
+	port@0 {
+		reg = <0>;
+
+		ds90ub960_fpd3_in: endpoint {
+			remote-endpoint = <&ub953_out>;
+
+			mode = <3>;
+			bc-freq = <50000000>;
+
+			serializer: remote-chip {
+				compatible = "ti,ds90ub953-q1";
+
+				gpio-controller;
+				#gpio-cells = <2>;
+
+				ports {
+					#address-cells = <1>;
+					#size-cells = <0>;
+
+					port@0 {
+						reg = <0>;
+						ub953_in: endpoint@0 {
+							remote-endpoint = <&sensor_out>;
+						};
+					};
+
+					port@1 {
+						reg = <1>;
+
+						ub953_out: endpoint@0 {
+							remote-endpoint = <&ds90ub960_fpd3_in>;
+						};
+					};
+				};
+			};
+		};
+	};
+};
+
+&ds90ub960_atr {
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	i2c@0 {
+		reg = <0>;
+
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+
+		vizionlink_tevi_ap1302_otp_0: vizionlink_tevi_ap1302_otp_0@54 {
+			compatible = "atmel,24c1024";
+			reg = <0x54>;
+			pagesize = <128>;
+			status = "okay";
+
+		};
+
+		vizionlink_pca9554_a25_0: vizionlink_pca9554@25 {
+			compatible = "nxp,pca9554";
+			reg = <0x25>;
+			gpio-controller;
+			#gpio-cells = <2>;
+			status = "okay";
+		};
+
+		sensor@3d {
+			compatible = "tn,tevi-ap1302";
+			reg = <0x3d>;
+
+			pinctrl-names = "default";
+			pinctrl-0 = <&main_rpi_cam0_pins_default>;
+
+			host-power-gpios = <&main_gpio0 116 GPIO_ACTIVE_HIGH>;
+			reset-gpios = <&vizionlink_pca9554_a25_0 4 GPIO_ACTIVE_HIGH>;
+			device-power-gpios = <&vizionlink_pca9554_a25_0 0 GPIO_ACTIVE_HIGH>;
+			standby-gpios = <&vizionlink_pca9554_a25_0 2 GPIO_ACTIVE_HIGH>;
+
+			nvmem = <&vizionlink_tevi_ap1302_otp_0>;
+			nvmem-names = "calib-data";
+			pixel-rate = <184291200>; /* 184.29MHz */
+			data-lanes = <2>;
+			continuous-clock = <0>;
+			status = "okay";
+
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+				sensor_out: endpoint {
+					remote-endpoint = <&ub953_in>;
+				};
+			};
+
+		};
+
+	};
+};

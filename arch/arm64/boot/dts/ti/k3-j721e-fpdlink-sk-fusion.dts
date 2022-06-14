@@ -6,6 +6,10 @@
 /dts-v1/;
 /plugin/;
 
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/pinctrl/k3.h>
+
 / {
 	fragment@101 {
 		target-path = "/";
@@ -17,6 +21,34 @@
 				clock-frequency = <25000000>;
 			};
 		};
+	};
+};
+
+&main_pmx0 {
+	main_rpi_cam0_pins_default: main-rpi-cam0-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x1D4, PIN_OUTPUT, 7) /* (Y3) SPI1_CS0 */
+			J721E_IOPAD(0x1D8, PIN_OUTPUT, 7) /* (W4) SPI1_CS1 */
+		>;
+	};
+
+	main_csi_mux_sel2_pins_default: main-csi-mux-sel2-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x164, PIN_OUTPUT, 7) /* (V29) RGMII5_TD2 */
+		>;
+	};
+};
+
+&main_gpio0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_csi_mux_sel2_pins_default>;
+
+	csi-mux-hog {
+		/* CSI_MUX_SEL_2 */
+		gpio-hog;
+		gpios = <88 GPIO_ACTIVE_HIGH>;
+		output-high;
+		line-name = "CSI_MUX_SEL_2";
 	};
 };
 
@@ -35,37 +67,12 @@
 			#size-cells = <0>;
 			reg = <0>;
 
-			deser@3d {
-				compatible = "ti,ds90ub960-q1";
-
-				reg-names = "main", "ser0", "ser1", "ser2", "ser3";
-				reg       = <0x3d>, <0x44>, <0x45>, <0x46>, <0x47>;
-
-				clocks = <&clk_fusion_25M_fixed>;
-
-				i2c-alias-pool = /bits/ 16 <0x4a 0x4b 0x4c 0x4d 0x4e 0x4f>;
-
-				data-rate = <1600000000>;
-
-				ds90ub960_0_ports: ports {
-					#address-cells = <1>;
-					#size-cells = <0>;
-
-					/* CSI-2 */
-					port@4 {
-						reg = <4>;
-						ds90ub960_0_csi_out: endpoint {
-							clock-lanes = <0>;
-							data-lanes = <1 2 3 4>;
-							remote-endpoint = <&csi2_phy0>;
-						};
-					};
-				};
-
-				ds90ub960_0_atr: i2c-atr {
-					#address-cells = <1>;
-					#size-cells = <0>;
-				};
+			pca9554_0: pca9554_0@21 {
+				compatible = "nxp,pca9554";
+				reg = <0x21>;
+				gpio-controller;
+				#gpio-cells = <2>;
+				status = "okay";
 			};
 
 			deser@36 {
@@ -76,26 +83,28 @@
 
 				clocks = <&clk_fusion_25M_fixed>;
 
-				i2c-alias-pool = /bits/ 16 <0x5a 0x5b 0x5c 0x5d 0x5e 0x5f>;
+				i2c-alias-pool = /bits/ 16 <0x5a 0x5b 0x5c 0x5d 0x5e 0x5f 0x60 0x61 0x62 0x63 0x64 0x65 0x66 0x67 0x68 0x69>;
 
 				data-rate = <1600000000>;
 
-				ds90ub960_1_ports: ports {
+				status = "okay";
+
+				ds90ub960_ports: ports {
 					#address-cells = <1>;
 					#size-cells = <0>;
 
 					/* CSI-2 */
 					port@4 {
 						reg = <4>;
-						ds90ub960_1_csi_out: endpoint {
+						ds90ub960_csi_out: endpoint {
 							clock-lanes = <0>;
-							data-lanes = <1 2 3 4>;
-							remote-endpoint = <&csi2_phy1>;
+							data-lanes = <1 2>;
+							remote-endpoint = <&csi2_phy0>;
 						};
 					};
 				};
 
-				ds90ub960_1_atr: i2c-atr {
+				ds90ub960_atr: i2c-atr {
 					#address-cells = <1>;
 					#size-cells = <0>;
 				};
@@ -108,18 +117,13 @@
 	status = "okay";
 
 	csi2_phy0: endpoint {
-		remote-endpoint = <&ds90ub960_0_csi_out>;
+		remote-endpoint = <&ds90ub960_csi_out>;
 		clock-lanes = <0>;
-		data-lanes = <1 2 3 4>;
+		bus-type = <4>; /* CSI2 DPHY. */
+		data-lanes = <1 2>;
 	};
 };
 
 &csi1_port0 {
-	status = "okay";
-
-	csi2_phy1: endpoint {
-		remote-endpoint = <&ds90ub960_1_csi_out>;
-		clock-lanes = <0>;
-		data-lanes = <1 2 3 4>;
-	};
+	status = "disabled";
 };
