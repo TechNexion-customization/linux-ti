@@ -37,6 +37,7 @@
 #define RTL8211F_ALDPS_PLL_OFF			BIT(1)
 #define RTL8211F_ALDPS_ENABLE			BIT(2)
 #define RTL8211F_ALDPS_XTAL_OFF			BIT(12)
+#define RTL821X_PHY_MODE_EEE_EN			BIT(5)
 
 #define RTL8211E_CTRL_DELAY			BIT(13)
 #define RTL8211E_TX_DELAY			BIT(12)
@@ -125,6 +126,9 @@ static int rtl821x_probe(struct phy_device *phydev)
 		priv->phycr2 = ret & RTL8211F_CLKOUT_EN;
 		if (of_property_read_bool(dev->of_node, "realtek,clkout-disable"))
 			priv->phycr2 &= ~RTL8211F_CLKOUT_EN;
+
+		if (!of_property_read_bool(dev->of_node, "realtek,phy-mode-eee-disable"))
+			priv->phycr2 &= ~RTL821X_PHY_MODE_EEE_EN;
 	}
 
 	phydev->priv = priv;
@@ -370,6 +374,14 @@ static int rtl8211f_config_init(struct phy_device *phydev)
 				       RTL8211F_CLKOUT_EN, priv->phycr2);
 		if (ret < 0) {
 			dev_err(dev, "clkout configuration failed: %pe\n",
+				ERR_PTR(ret));
+			return ret;
+		}
+
+		ret = phy_modify_paged_changed(phydev, 0xa43, RTL8211F_PHYCR2,
+				       RTL821X_PHY_MODE_EEE_EN, priv->phycr2);
+		if (ret < 0) {
+			dev_err(dev, "PHY-mode EEE configuration failed: %pe\n",
 				ERR_PTR(ret));
 			return ret;
 		}
