@@ -1,0 +1,887 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (C) 2019 Texas Instruments Incorporated - https://www.ti.com/
+ * Copyright (C) 2023 TechNexion Ltd.
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *         John Weber <John.weber@technexion.com>
+ */
+
+/dts-v1/;
+
+#include "k3-j721e.dtsi"
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	memory@80000000 {
+		device_type = "memory";
+		/* 4G RAM */
+		reg = <0x00000000 0x80000000 0x00000000 0x80000000>,
+		      <0x00000008 0x80000000 0x00000000 0x80000000>;
+	};
+
+	reserved_memory: reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		/* global cma region */
+		linux,cma {
+			compatible = "shared-dma-pool";
+			reusable;
+			size = <0x00 0x20000000>;
+			linux,cma-default;
+		};
+
+		secure_ddr: optee@9e800000 {
+			reg = <0x00 0x9e800000 0x00 0x01800000>;
+			alignment = <0x1000>;
+			no-map;
+		};
+
+		mcu_r5fss0_core0_dma_memory_region: r5f-dma-memory@a0000000 {
+			compatible = "shared-dma-pool";
+			reg = <0x00 0xa0000000 0x00 0x100000>;
+			no-map;
+		};
+
+		mcu_r5fss0_core0_memory_region: r5f-memory@a0100000 {
+			compatible = "shared-dma-pool";
+			reg = <0x00 0xa0100000 0x00 0xf00000>;
+			no-map;
+		};
+
+		mcu_r5fss0_core1_dma_memory_region: r5f-dma-memory@a1000000 {
+			compatible = "shared-dma-pool";
+			reg = <0x00 0xa1000000 0x00 0x100000>;
+			no-map;
+		};
+
+		mcu_r5fss0_core1_memory_region: r5f-memory@a1100000 {
+			compatible = "shared-dma-pool";
+			reg = <0x00 0xa1100000 0x00 0xf00000>;
+			no-map;
+		};
+
+		main_r5fss0_core0_dma_memory_region: r5f-dma-memory@a2000000 {
+			compatible = "shared-dma-pool";
+			reg = <0x00 0xa2000000 0x00 0x100000>;
+			no-map;
+		};
+
+		main_r5fss0_core0_memory_region: r5f-memory@a2100000 {
+			compatible = "shared-dma-pool";
+			reg = <0x00 0xa2100000 0x00 0xf00000>;
+			no-map;
+		};
+
+		main_r5fss0_core1_dma_memory_region: r5f-dma-memory@a3000000 {
+			compatible = "shared-dma-pool";
+			reg = <0x00 0xa3000000 0x00 0x100000>;
+			no-map;
+		};
+
+		main_r5fss0_core1_memory_region: r5f-memory@a3100000 {
+			compatible = "shared-dma-pool";
+			reg = <0x00 0xa3100000 0x00 0xf00000>;
+			no-map;
+		};
+
+		main_r5fss1_core0_dma_memory_region: r5f-dma-memory@a4000000 {
+			compatible = "shared-dma-pool";
+			reg = <0x00 0xa4000000 0x00 0x100000>;
+			no-map;
+		};
+
+		main_r5fss1_core0_memory_region: r5f-memory@a4100000 {
+			compatible = "shared-dma-pool";
+			reg = <0x00 0xa4100000 0x00 0xf00000>;
+			no-map;
+		};
+
+		main_r5fss1_core1_dma_memory_region: r5f-dma-memory@a5000000 {
+			compatible = "shared-dma-pool";
+			reg = <0x00 0xa5000000 0x00 0x100000>;
+			no-map;
+		};
+
+		main_r5fss1_core1_memory_region: r5f-memory@a5100000 {
+			compatible = "shared-dma-pool";
+			reg = <0x00 0xa5100000 0x00 0xf00000>;
+			no-map;
+		};
+
+		c66_1_dma_memory_region: c66-dma-memory@a6000000 {
+			compatible = "shared-dma-pool";
+			reg = <0x00 0xa6000000 0x00 0x100000>;
+			no-map;
+		};
+
+		c66_0_memory_region: c66-memory@a6100000 {
+			compatible = "shared-dma-pool";
+			reg = <0x00 0xa6100000 0x00 0xf00000>;
+			no-map;
+		};
+
+		c66_0_dma_memory_region: c66-dma-memory@a7000000 {
+			compatible = "shared-dma-pool";
+			reg = <0x00 0xa7000000 0x00 0x100000>;
+			no-map;
+		};
+
+		c66_1_memory_region: c66-memory@a7100000 {
+			compatible = "shared-dma-pool";
+			reg = <0x00 0xa7100000 0x00 0xf00000>;
+			no-map;
+		};
+
+		c71_0_dma_memory_region: c71-dma-memory@a8000000 {
+			compatible = "shared-dma-pool";
+			reg = <0x00 0xa8000000 0x00 0x100000>;
+			no-map;
+		};
+
+		c71_0_memory_region: c71-memory@a8100000 {
+			compatible = "shared-dma-pool";
+			reg = <0x00 0xa8100000 0x00 0xf00000>;
+			no-map;
+		};
+
+		rtos_ipc_memory_region: ipc-memories@aa000000 {
+			reg = <0x00 0xaa000000 0x00 0x01c00000>;
+			alignment = <0x1000>;
+			no-map;
+		};
+
+		main_r5fss0_core0_shared_memory_queue_region:r5f-virtual-eth-queues@ac000000 {
+			compatible = "shared-dma-pool";
+			reg = <0x00 0xac000000 0x00 0x200000>;
+			no-map;
+		};
+
+		main_r5fss0_core0_shared_memory_bufpool_region:r5f-virtual-eth-buffers@ac200000 {
+			compatible = "shared-dma-pool";
+			reg = <0x00 0xac200000 0x00 0x1e00000>;
+			no-map;
+		};
+	};
+
+	reg_cpld_jtag_switch: cpld_jtag_switch {
+		compatible = "regulator-fixed";
+		regulator-name = "cpld_jtag_switch";
+		pinctrl-names = "default";
+		pinctrl-0 = <&mcu_cpld_jtag_switch_control_pins_default>;
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&wkup_gpio0 28 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+		regulator-always-on;
+	};
+};
+
+&main_pmx0 {
+	main_i2c0_pins_default: main-i2c0-pins-default { /* I2C_A */
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x220, PIN_INPUT_PULLUP, 0) /* (AC5) I2C0_SCL */
+			J721E_IOPAD(0x224, PIN_INPUT_PULLUP, 0) /* (AA5) I2C0_SDA */
+		>;
+	};
+
+	main_i2c1_pins_default: main-i2c1-pins-default { /* I2C_B */
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x228, PIN_INPUT_PULLUP, 0) /* (Y6) I2C1_SCL */
+			J721E_IOPAD(0x22c, PIN_INPUT_PULLUP, 0) /* (AA6) I2C1_SDA */
+		>;
+	};
+
+	main_i2c2_pins_default: main-i2c2-pins-default { /* I2C_C */
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x1c8, PIN_INPUT_PULLUP, 2) /* (AB5) SPI0_CLK.I2C2_SCL */
+			J721E_IOPAD(0x1cc, PIN_INPUT_PULLUP, 2) /* (AA1) SPI0_D0.I2C2_SDA */
+		>;
+	};
+
+	main_i2c4_pins_default: main-i2c-pins-default { /* I2C_D */
+		pinctrl-single,pins = <
+			J721E_IOPAD(0xa8, PIN_INPUT_PULLUP, 2) /* (AD19) PRG1_MDIO0_MDIO.I2C4_SCL */
+			J721E_IOPAD(0xac, PIN_INPUT_PULLUP, 2) /* (AD18) PRG1_MDIO0_MDC.I2C4_SDA */
+		>;
+	};
+
+	main_i2c5_pins_default: main-i2c5-pins-default { /* I2C_E */
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x150, PIN_INPUT_PULLUP, 2) /* (Y26) PRG0_MDIO0_MDIO.I2C5_SCL */
+			J721E_IOPAD(0x154, PIN_INPUT_PULLUP, 2) /* (AA27) PRG0_MDIO0_MDC.I2C5_SDA */
+		>;
+	};
+
+	main_i2c6_pins_default: main-i2c6-pins-default { /* I2C_F */
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x170, PIN_INPUT_PULLUP, 2) /* (U29) RGMII5_TXC.I2C6_SCL */
+			J721E_IOPAD(0x174, PIN_INPUT_PULLUP, 2) /* (U25) RGMII5_RXC.I2C6_SDA */
+		>;
+	};
+
+	main_spi1_pins_default: main-spi1-pins-default { /* SPI_A */
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x1dc, PIN_OUTPUT, 0) /* (Y1) SPI1_CLK */
+			J721E_IOPAD(0x1d4, PIN_OUTPUT, 0) /* (Y3) SPI1_CS0 */
+			J721E_IOPAD(0x1d8, PIN_OUTPUT, 0) /* (W4) SPI1_CS1 */
+			J721E_IOPAD(0x1e0, PIN_OUTPUT, 0) /* (Y5) SPI1_D0 */
+			J721E_IOPAD(0x1e4, PIN_INPUT, 0) /* (Y2) SPI1_D1 */
+		>;
+	};
+
+	main_spi5_pins_default: main-spi5-pins-default { /* SPI_B */
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x1a0, PIN_OUTPUT, 3) /* (W29) RGMII6_TXC.SPI5_CLK */
+			J721E_IOPAD(0x19c, PIN_INPUT, 3) /* (W27) RGMII6_TD0.SPI5_CS0 */
+			J721E_IOPAD(0x1b4, PIN_OUTPUT, 3) /* (W25) RGMII6_RD0.SPI5_CS1 */
+			J721E_IOPAD(0x198, PIN_OUTPUT, 3) /* (V25) RGMII6_TD1.SPI5_D0 */
+			J721E_IOPAD(0x1b0, PIN_INPUT, 3) /* (W24) RGMII6_RD1.SPI5_D1 */
+		>;
+	};
+
+	main_uart0_pins_default: main-uart0-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x1f0, PIN_INPUT, 0) /* (AC2) UART0_CTSn */
+			J721E_IOPAD(0x1f4, PIN_OUTPUT, 0) /* (AB1) UART0_RTSn */
+			J721E_IOPAD(0x1e8, PIN_INPUT, 0) /* (AB2) UART0_RXD */
+			J721E_IOPAD(0x1ec, PIN_OUTPUT, 0) /* (AB3) UART0_TXD */
+		>;
+	};
+
+	main_uart1_pins_default: main-uart1-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x200, PIN_INPUT, 0) /* (AC4) UART1_CTSn */
+			J721E_IOPAD(0x204, PIN_OUTPUT, 0) /* (AD5) UART1_RTSn */
+			J721E_IOPAD(0x1f8, PIN_INPUT, 0) /* (AA4) UART1_RXD */
+			J721E_IOPAD(0x1fc, PIN_OUTPUT, 0) /* (AB4) UART1_TXD */
+		>;
+	};
+
+	main_uart2_pins_default: main-uart2-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x138, PIN_INPUT, 14) /* (AE25) PRG0_PRU1_GPO14.UART2_CTSn */
+			J721E_IOPAD(0x13c, PIN_OUTPUT, 14) /* (AF29) PRG0_PRU1_GPO15.UART2_RTSn */
+			J721E_IOPAD(0x148, PIN_INPUT, 14) /* (AA26) PRG0_PRU1_GPO18.UART2_RXD */
+			J721E_IOPAD(0x11c, PIN_OUTPUT, 14) /* (AA24) PRG0_PRU1_GPO7.UART2_TXD */
+		>;
+	};
+
+	main_uart4_pins_default: main-uart4-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x100, PIN_INPUT, 8) /* (AE29) PRG0_PRU1_GPO0.UART4_CTSn */
+			J721E_IOPAD(0x104, PIN_OUTPUT, 8) /* (AD28) PRG0_PRU1_GPO1.UART4_RTSn */
+			J721E_IOPAD(0xe8, PIN_INPUT, 8) /* (AG28) PRG0_PRU0_GPO14.UART4_RXD */
+			J721E_IOPAD(0xec, PIN_OUTPUT, 8) /* (AG27) PRG0_PRU0_GPO15.UART4_TXD */
+		>;
+	};
+
+	main_mcan0_pins_default: main-mcan0-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x208, PIN_INPUT, 0) /* (W5) MCAN0_RX */
+			J721E_IOPAD(0x20c, PIN_OUTPUT, 0) /* (W6) MCAN0_TX */
+		>;
+	};
+
+	main_mcan1_pins_default: main-mcan1-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x210, PIN_INPUT, 0) /* (W3) MCAN1_RX */
+			J721E_IOPAD(0x214, PIN_OUTPUT, 0) /* (V4) MCAN1_TX */
+		>;
+	};
+
+	main_mcan4_pins_default: main-mcan4-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x24, PIN_INPUT, 6) /* (AJ20) PRG1_PRU0_GPO8.MCAN4_RX */
+			J721E_IOPAD(0x20, PIN_OUTPUT, 6) /* (AE20) PRG1_PRU0_GPO7.MCAN4_TX */
+		>;
+	};
+
+	main_mcan5_pins_default: main-mcan5-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x50, PIN_INPUT, 6) /* (AE21) PRG1_PRU0_GPO18.MCAN5_RX */
+			J721E_IOPAD(0x4c, PIN_OUTPUT, 6) /* (AJ21) PRG1_PRU0_GPO17.MCAN5_TX */
+		>;
+	};
+
+	main_mcan6_pins_default: main-mcan6-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x44, PIN_INPUT, 6) /* (AE24) PRG1_PRU0_GPO16.MCAN6_RX */
+			J721E_IOPAD(0x40, PIN_OUTPUT, 6) /* (AC24) PRG1_PRU0_GPO15.MCAN6_TX */
+		>;
+	};
+
+	main_mcan7_pins_default: main-mcan7-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x8c, PIN_INPUT, 6) /* (AG25) PRG1_PRU1_GPO13.MCAN7_RX */
+			J721E_IOPAD(0x88, PIN_OUTPUT, 6) /* (AH25) PRG1_PRU1_GPO12.MCAN7_TX */
+		>;
+	};
+
+	main_mcan8_pins_default: main-mcan8-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x94, PIN_INPUT, 6) /* (AJ27) PRG1_PRU1_GPO15.MCAN8_RX */
+			J721E_IOPAD(0x90, PIN_OUTPUT, 6) /* (AH26) PRG1_PRU1_GPO14.MCAN8_TX */
+		>;
+	};
+
+	main_mcan9_pins_default: main-mcan9-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0xd0, PIN_INPUT, 6) /* (AC27) PRG0_PRU0_GPO8.MCAN9_RX */
+			J721E_IOPAD(0xcc, PIN_OUTPUT, 6) /* (AC28) PRG0_PRU0_GPO7.MCAN9_TX */
+		>;
+	};
+
+	mcasp6_pins_default: mcasp6-pins-default { /* AUD_A */
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x4, PIN_INPUT, 12) /* (AC23) PRG1_PRU0_GPO0.MCASP6_ACLKX */
+			J721E_IOPAD(0x8, PIN_INPUT, 12) /* (AG22) PRG1_PRU0_GPO1.MCASP6_AFSX */
+			J721E_IOPAD(0xc, PIN_OUTPUT, 12) /* (AF22) PRG1_PRU0_GPO2.MCASP6_AXR0 */
+			J721E_IOPAD(0x10, PIN_INPUT, 12) /* (AJ23) PRG1_PRU0_GPO3.MCASP6_AXR1 */
+		>;
+	};
+
+	mcasp10_pins_default: mcasp10-pins-default { /* AUD_B */
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x158, PIN_OUTPUT, 12) /* (U23) RGMII5_TX_CTL.MCASP10_ACLKX */
+			J721E_IOPAD(0x15c, PIN_OUTPUT, 12) /* (U26) RGMII5_RX_CTL.MCASP10_AFSX */
+			J721E_IOPAD(0x160, PIN_OUTPUT, 12) /* (V28) RGMII5_TD3.MCASP10_AXR0 */
+			J721E_IOPAD(0x164, PIN_INPUT, 12) /* (V29) RGMII5_TD2.MCASP10_AXR1 */
+		>;
+	};
+
+	dsi_pwr_en_pins_default: dsi-pwr-en-pins-default { /* DSI0_PWR_EN */
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x70, PIN_OUTPUT_PULLUP, 7) /* (AE23) PRG1_PRU1_GPO6.GPIO0_27 */
+		>;
+	};
+};
+
+&wkup_pmx0 {
+	wkup_i2c0_pins_default: wkup-i2c0-pins-default {
+		pinctrl-single,pins = <
+			J721E_WKUP_IOPAD(0xf8, PIN_INPUT_PULLUP, 0) /* (J25) WKUP_I2C0_SCL */
+			J721E_WKUP_IOPAD(0xfc, PIN_INPUT_PULLUP, 0) /* (H24) WKUP_I2C0_SDA */
+		>;
+	};
+
+	mcu_i2c1_pins_default: mcu-i2c1-pins-default {
+		pinctrl-single,pins = <
+			J721E_WKUP_IOPAD(0xc8, PIN_INPUT, 3) /* (F29) WKUP_GPIO0_6.MCU_I2C1_SCL */
+			J721E_WKUP_IOPAD(0xd4, PIN_INPUT, 0) /* (G26) WKUP_GPIO0_9.MCU_I2C1_SDA */
+		>;
+	};
+
+	mcu_fss0_ospi0_pins_default: mcu-fss0-ospi0-pins-default {
+		pinctrl-single,pins = <
+			J721E_WKUP_IOPAD(0x0000, PIN_OUTPUT, 0) /* MCU_OSPI0_CLK */
+			J721E_WKUP_IOPAD(0x0008, PIN_INPUT, 0)  /* MCU_OSPI0_DQS */
+			J721E_WKUP_IOPAD(0x000c, PIN_INPUT, 0)  /* MCU_OSPI0_D0 */
+			J721E_WKUP_IOPAD(0x0010, PIN_INPUT, 0)  /* MCU_OSPI0_D1 */
+			J721E_WKUP_IOPAD(0x0014, PIN_INPUT, 0)  /* MCU_OSPI0_D2 */
+			J721E_WKUP_IOPAD(0x0018, PIN_INPUT, 0)  /* MCU_OSPI0_D3 */
+			J721E_WKUP_IOPAD(0x001c, PIN_INPUT, 0)  /* MCU_OSPI0_D4 */
+			J721E_WKUP_IOPAD(0x0020, PIN_INPUT, 0)  /* MCU_OSPI0_D5 */
+			J721E_WKUP_IOPAD(0x0024, PIN_INPUT, 0)  /* MCU_OSPI0_D6 */
+			J721E_WKUP_IOPAD(0x0028, PIN_INPUT, 0)  /* MCU_OSPI0_D7 */
+			J721E_WKUP_IOPAD(0x002c, PIN_OUTPUT, 0) /* MCU_OSPI0_CSn0 */
+		>;
+	};
+
+	mcu_mcan0_pins_default: mcu-mcan0-pins-default {
+		pinctrl-single,pins = <
+			J721E_WKUP_IOPAD(0xac, PIN_INPUT, 0) /* (C29) MCU_MCAN0_RX */
+			J721E_WKUP_IOPAD(0xa8, PIN_OUTPUT, 0) /* (D29) MCU_MCAN0_TX */
+		>;
+	};
+
+	mcu_mcan0_gpio_pins_default: mcu-mcan0-gpio-pins-default {
+		pinctrl-single,pins = <
+			J721E_WKUP_IOPAD(0xb0, PIN_INPUT, 7) /* (F26) WKUP_GPIO0_0 */
+			J721E_WKUP_IOPAD(0x98, PIN_INPUT, 7) /* (E28) MCU_SPI0_D1.WKUP_GPIO0_54 */
+		>;
+	};
+
+	mcu_mcan1_pins_default: mcu-mcan1-pins-default {
+		pinctrl-single,pins = <
+			J721E_WKUP_IOPAD(0xc4, PIN_INPUT, 0) /* (G24) WKUP_GPIO0_5.MCU_MCAN1_RX */
+			J721E_WKUP_IOPAD(0xc0, PIN_OUTPUT, 0) /* (G25) WKUP_GPIO0_4.MCU_MCAN1_TX */
+		>;
+	};
+
+	mcu_eeprom_som_wp_pins_default: mcu-eeprom-som-wp-pins-default {
+		pinctrl-single,pins = <
+			J721E_WKUP_IOPAD(0x108, PIN_OUTPUT, 7) /* (E26) PMIC_POWER_EN0.WKUP_GPIO0_66 */
+		>;
+	};
+
+	mcu_cpld_jtag_switch_control_pins_default: mcu-cpld-jtag-switch-control-pins-default {
+		pinctrl-single,pins = <
+			J721E_WKUP_IOPAD(0x30, PIN_OUTPUT, 7) /* (E19) MCU_OSPI0_CSn1.WKUP_GPIO0_28 */
+		>;
+	};
+
+	mcu_spi0_pins_default: mcu_spi0_pins_default {
+		pinctrl-single,pins = <
+			J721E_WKUP_IOPAD(0x90, PIN_INPUT, 0) /* (E27) MCU_SPI0_CLK */
+			J721E_WKUP_IOPAD(0x9c, PIN_INPUT, 0) /* (E25) MCU_SPI0_CS0 */
+			J721E_WKUP_IOPAD(0x94, PIN_INPUT, 0) /* (E24) MCU_SPI0_D0 */
+			J721E_WKUP_IOPAD(0x98, PIN_INPUT, 0) /* (E28) MCU_SPI0_D1 */
+		>;
+	};
+};
+
+&ospi0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&mcu_fss0_ospi0_pins_default>;
+
+	flash@0{
+		compatible = "jedec,spi-nor";
+		reg = <0x0>;
+		spi-tx-bus-width = <8>;
+		spi-rx-bus-width = <8>;
+		spi-max-frequency = <25000000>;
+		cdns,tshsl-ns = <60>;
+		cdns,tsd2d-ns = <60>;
+		cdns,tchsh-ns = <60>;
+		cdns,tslch-ns = <60>;
+		cdns,read-delay = <0>;
+		#address-cells = <1>;
+		#size-cells = <1>;
+	};
+};
+
+&mailbox0_cluster0 {
+	interrupts = <436>;
+
+	mbox_mcu_r5fss0_core0: mbox-mcu-r5fss0-core0 {
+		ti,mbox-rx = <0 0 0>;
+		ti,mbox-tx = <1 0 0>;
+	};
+
+	mbox_mcu_r5fss0_core1: mbox-mcu-r5fss0-core1 {
+		ti,mbox-rx = <2 0 0>;
+		ti,mbox-tx = <3 0 0>;
+	};
+};
+
+&mailbox0_cluster1 {
+	interrupts = <432>;
+
+	mbox_main_r5fss0_core0: mbox-main-r5fss0-core0 {
+		ti,mbox-rx = <0 0 0>;
+		ti,mbox-tx = <1 0 0>;
+	};
+
+	mbox_main_r5fss0_core1: mbox-main-r5fss0-core1 {
+		ti,mbox-rx = <2 0 0>;
+		ti,mbox-tx = <3 0 0>;
+	};
+};
+
+&mailbox0_cluster2 {
+	interrupts = <428>;
+
+	mbox_main_r5fss1_core0: mbox-main-r5fss1-core0 {
+		ti,mbox-rx = <0 0 0>;
+		ti,mbox-tx = <1 0 0>;
+	};
+
+	mbox_main_r5fss1_core1: mbox-main-r5fss1-core1 {
+		ti,mbox-rx = <2 0 0>;
+		ti,mbox-tx = <3 0 0>;
+	};
+};
+
+&mailbox0_cluster3 {
+	interrupts = <424>;
+
+	mbox_c66_0: mbox-c66-0 {
+		ti,mbox-rx = <0 0 0>;
+		ti,mbox-tx = <1 0 0>;
+	};
+
+	mbox_c66_1: mbox-c66-1 {
+		ti,mbox-rx = <2 0 0>;
+		ti,mbox-tx = <3 0 0>;
+	};
+};
+
+&mailbox0_cluster4 {
+	interrupts = <420>;
+
+	mbox_c71_0: mbox-c71-0 {
+		ti,mbox-rx = <0 0 0>;
+		ti,mbox-tx = <1 0 0>;
+	};
+};
+
+&mailbox0_cluster5 {
+	status = "disabled";
+};
+
+&mailbox0_cluster6 {
+	status = "disabled";
+};
+
+&mailbox0_cluster7 {
+	status = "disabled";
+};
+
+&mailbox0_cluster8 {
+	status = "disabled";
+};
+
+&mailbox0_cluster9 {
+	status = "disabled";
+};
+
+&mailbox0_cluster10 {
+	status = "disabled";
+};
+
+&mailbox0_cluster11 {
+	status = "disabled";
+};
+
+&mcu_r5fss0_core0 {
+	mboxes = <&mailbox0_cluster0 &mbox_mcu_r5fss0_core0>;
+	memory-region = <&mcu_r5fss0_core0_dma_memory_region>,
+			<&mcu_r5fss0_core0_memory_region>;
+};
+
+&mcu_r5fss0_core1 {
+	mboxes = <&mailbox0_cluster0 &mbox_mcu_r5fss0_core1>;
+	memory-region = <&mcu_r5fss0_core1_dma_memory_region>,
+			<&mcu_r5fss0_core1_memory_region>;
+};
+
+&main_r5fss0_core0 {
+	mboxes = <&mailbox0_cluster1 &mbox_main_r5fss0_core0>;
+	memory-region = <&main_r5fss0_core0_dma_memory_region>,
+			<&main_r5fss0_core0_memory_region>,
+			<&main_r5fss0_core0_shared_memory_queue_region>,
+			<&main_r5fss0_core0_shared_memory_bufpool_region>;
+};
+
+&main_r5fss0_core1 {
+	mboxes = <&mailbox0_cluster1 &mbox_main_r5fss0_core1>;
+	memory-region = <&main_r5fss0_core1_dma_memory_region>,
+			<&main_r5fss0_core1_memory_region>;
+};
+
+&main_r5fss1_core0 {
+	mboxes = <&mailbox0_cluster2 &mbox_main_r5fss1_core0>;
+	memory-region = <&main_r5fss1_core0_dma_memory_region>,
+			<&main_r5fss1_core0_memory_region>;
+};
+
+&main_r5fss1_core1 {
+	mboxes = <&mailbox0_cluster2 &mbox_main_r5fss1_core1>;
+	memory-region = <&main_r5fss1_core1_dma_memory_region>,
+			<&main_r5fss1_core1_memory_region>;
+};
+
+&c66_0 {
+	mboxes = <&mailbox0_cluster3 &mbox_c66_0>;
+	memory-region = <&c66_0_dma_memory_region>,
+			<&c66_0_memory_region>;
+};
+
+&c66_1 {
+	mboxes = <&mailbox0_cluster3 &mbox_c66_1>;
+	memory-region = <&c66_1_dma_memory_region>,
+			<&c66_1_memory_region>;
+};
+
+&c71_0 {
+	mboxes = <&mailbox0_cluster4 &mbox_c71_0>;
+	memory-region = <&c71_0_dma_memory_region>,
+			<&c71_0_memory_region>;
+};
+
+&main_i2c0 { /* I2C_A */
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_i2c0_pins_default>;
+	clock-frequency = <400000>;
+};
+
+&main_i2c1 { /* I2C_B */
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_i2c1_pins_default>;
+	clock-frequency = <400000>;
+};
+
+&main_i2c2 { /* I2C_C */
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_i2c2_pins_default>;
+	clock-frequency = <400000>;
+};
+
+&main_i2c3 {
+	/* Unused */
+	status = "disabled";
+};
+
+&main_i2c4 { /* I2C_D */
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_i2c4_pins_default>;
+	clock-frequency = <400000>;
+};
+
+&main_i2c5 { /* I2C_E */
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_i2c5_pins_default>;
+	clock-frequency = <400000>;
+};
+
+&main_i2c6 { /* I2C_F */
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_i2c6_pins_default>;
+	clock-frequency = <400000>;
+};
+
+&mcu_i2c1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&mcu_i2c1_pins_default>;
+	clock-frequency = <400000>;
+};
+
+&wkup_i2c0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&wkup_i2c0_pins_default>;
+	clock-frequency = <400000>;
+
+	eeprom_som: eeprom@50 {
+		compatible = "atmel,24c512";
+		pinctrl-names = "default";
+		pinctrl-0 = <&mcu_eeprom_som_wp_pins_default>;
+		//wp-gpios = <&wkup_gpio0 66 GPIO_ACTIVE_HIGH>;
+		reg = <0x50>;
+		pagesize = <128>;
+		status = "okay";
+	};
+};
+
+&main_spi1 { /* SPI_A */
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_spi1_pins_default>;
+	ti,pindir-d0-out-d1-in = <1>;    /* MOSI on D0, MISO on D1 */
+	ti,spi-num-cs = <2>;
+	cs-gpios = <0>, <0>;    /* 2 Native CS0,1 */
+};
+
+&main_spi5 { /* SPI_B */
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_spi5_pins_default>;
+	ti,pindir-d0-out-d1-in = <1>;    /* MOSI on D0, MISO on D1 */
+	ti,spi-num-cs = <2>;
+	cs-gpios = <0>, <0>;    /* 2 Native CS0,1 */
+};
+
+&main_uart0 { /* UART_A */
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_uart0_pins_default>;
+	/* Shared with ATF on this platform */
+	power-domains = <&k3_pds 146 TI_SCI_PD_SHARED>;
+};
+
+&main_uart1 { /* UART_B */
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_uart1_pins_default>;
+};
+
+&main_uart2 { /* UART_C */
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_uart2_pins_default>;
+};
+
+&main_uart3 {
+	/* UART not brought out */
+	status = "disabled";
+};
+
+&main_uart4 { /* UART_D */
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_uart4_pins_default>;
+};
+
+&main_uart5 {
+	/* UART not brought out */
+	status = "disabled";
+};
+
+&main_uart6 {
+	/* UART not brought out */
+	status = "disabled";
+};
+
+&main_uart7 {
+	/* UART not brought out */
+	status = "disabled";
+};
+
+&main_uart8 {
+	/* UART not brought out */
+	status = "disabled";
+};
+
+&main_uart9 {
+	/* UART not brought out */
+	status = "disabled";
+};
+
+&mcu_mcan0 { /* MCU_CAN0 */
+	pinctrl-names = "default";
+	pinctrl-0 = <&mcu_mcan0_pins_default>;
+};
+
+&mcu_mcan1 { /* MCU_CAN1 */
+	pinctrl-names = "default";
+	pinctrl-0 = <&mcu_mcan1_pins_default>;
+};
+
+&main_mcan0 { /* SOC_CAN_A */
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_mcan0_pins_default>;
+};
+
+&main_mcan1 { /* SOC_CAN_B */
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_mcan1_pins_default>;
+};
+
+&main_mcan2 {
+	status = "disabled";
+};
+
+&main_mcan3 {
+	status = "disabled";
+};
+
+&main_mcan4 { /* SOC_CAN_C */
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_mcan4_pins_default>;
+};
+
+&main_mcan5 { /* SOC_CAN_D */
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_mcan5_pins_default>;
+};
+
+&main_mcan6 { /* SOC_CAN_E */
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_mcan6_pins_default>;
+};
+
+&main_mcan7 { /* SOC_CAN_F */
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_mcan7_pins_default>;
+};
+
+&main_mcan8 { /* SOC_CAN_G */
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_mcan8_pins_default>;
+};
+
+&main_mcan9 { /* SOC_CAN_H */
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_mcan9_pins_default>;
+};
+
+&main_mcan10 {
+	status = "disabled";
+};
+
+&main_mcan11 {
+	status = "disabled";
+};
+
+&main_mcan12 {
+	status = "disabled";
+};
+
+&main_mcan13 {
+	status = "disabled";
+};
+
+&mcasp0 { /* Unused */
+	status = "disabled";
+};
+
+&mcasp1 { /* Unused */
+	status = "disabled";
+};
+
+&mcasp2 { /* Unused */
+	status = "disabled";
+};
+
+&mcasp3 { /* Unused */
+	status = "disabled";
+};
+
+&mcasp4 { /* Unused */
+	status = "disabled";
+};
+
+&mcasp5 { /* Unused */
+	status = "disabled";
+};
+
+&mcasp6 { /* AUD_A */
+	#sound-dai-cells = <0>;
+
+	pinctrl-names = "default";
+	pinctrl-0 = <&mcasp6_pins_default>;
+
+	op-mode = <0>;          /* MCASP_IIS_MODE */
+	tdm-slots = <2>;
+
+	serial-dir = <  /* 0: INACTIVE, 1: TX, 2: RX */
+		1 2 0 0
+		0 0 0 0
+		0 0 0 0
+		0 0 0 0
+	>;
+	tx-num-evt = <32>;
+	rx-num-evt = <32>;
+};
+
+&mcasp7 { /* Unused */
+	status = "disabled";
+};
+
+&mcasp8 { /* Unused */
+	status = "disabled";
+};
+
+&mcasp9 { /* Unused */
+	status = "disabled";
+};
+
+&mcasp10 { /* AUD_B */
+	#sound-dai-cells = <0>;
+
+	pinctrl-names = "default";
+	pinctrl-0 = <&mcasp10_pins_default>;
+
+	op-mode = <0>;          /* MCASP_IIS_MODE */
+	tdm-slots = <2>;
+	//auxclk-fs-ratio = <256>;
+
+	serial-dir = <	/* 0: INACTIVE, 1: TX, 2: RX */
+		1 2 0 0
+		0 0 0 0
+		0 0 0 0
+		0 0 0 0
+	>;
+	tx-num-evt = <32>;
+	rx-num-evt = <32>;
+};
+
+&mcasp11 { /* Unused */
+	status = "disabled";
+};
