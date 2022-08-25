@@ -5,13 +5,15 @@
 
 /dts-v1/;
 
-#include "k3-j721e-som-p0.dtsi"
+#include "k3-j721e-rovy.dtsi"
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/input/input.h>
 #include <dt-bindings/net/ti-dp83867.h>
 #include <dt-bindings/phy/phy-cadence.h>
 
 / {
+	model = "ROVY-4VM, Texas Instruments K3 J721E SoC";
+
 	chosen {
 		stdout-path = "serial2:115200n8";
 		bootargs = "console=ttyS2,115200n8 earlycon=ns16550a,mmio32,0x02800000";
@@ -71,24 +73,26 @@
 	vdd_mmc1: fixedregulator-sd {
 		compatible = "regulator-fixed";
 		regulator-name = "vdd_mmc1";
+		pinctrl-names = "default";
+		pinctrl-0 = <&vdd_mmc1_en_pins_default>;
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
 		regulator-boot-on;
 		enable-active-high;
 		vin-supply = <&vsys_3v3>;
-		gpio = <&exp2 2 GPIO_ACTIVE_HIGH>;
+		gpio = <&main_gpio0 11 GPIO_ACTIVE_HIGH>;
 	};
 
-	vdd_sd_dv_alt: gpio-regulator-TLV71033 {
+	vdd_sd_dv_alt: gpio-regulator-tps659411 {
 		compatible = "regulator-gpio";
 		pinctrl-names = "default";
 		pinctrl-0 = <&vdd_sd_dv_alt_pins_default>;
-		regulator-name = "tlv71033";
+		regulator-name = "tps659411";
 		regulator-min-microvolt = <1800000>;
 		regulator-max-microvolt = <3300000>;
 		regulator-boot-on;
-		vin-supply = <&vsys_5v0>;
-		gpios = <&main_gpio0 117 GPIO_ACTIVE_HIGH>;
+		vin-supply = <&vsys_3v3>;
+		gpios = <&main_gpio0 96 GPIO_ACTIVE_HIGH>;
 		states = <1800000 0x0>,
 			 <3300000 0x1>;
 	};
@@ -243,9 +247,15 @@
 		>;
 	};
 
+	vdd_mmc1_en_pins_default: vdd-mmc1-en-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x2c, PIN_OUTPUT, 7) /* (AD21) PRG1_PRU0_GPIO10.GPIO0_11 */
+		>;
+	};
+
 	vdd_sd_dv_alt_pins_default: vdd-sd-dv-alt-pins-default {
 		pinctrl-single,pins = <
-			J721E_IOPAD(0x1d8, PIN_INPUT, 7) /* (W4) SPI1_CS1.GPIO0_117 */
+			J721E_IOPAD(0x184, PIN_OUTPUT, 7) /* (T23) RGMII5_RD0.GPIO0_96 */
 		>;
 	};
 
