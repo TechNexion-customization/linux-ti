@@ -323,6 +323,12 @@
 };
 
 &wkup_pmx0 {
+	mcu_rgmii_phy_reset: mcu_rgmii_phy_reset {
+		pinctrl-single,pins = <
+			J721E_WKUP_IOPAD(0xbc, PIN_OUTPUT, 7) /* (F27) WKUP_GPIO0_3 */
+		>;
+	};
+
 	sw11_button_pins_default: sw11-button-pins-default {
 		pinctrl-single,pins = <
 			J721E_WKUP_IOPAD(0xcc, PIN_INPUT, 7) /* (G28) WKUP_GPIO0_7 */
@@ -617,12 +623,15 @@
 
 &davinci_mdio {
 	phy0: ethernet-phy@0 {
+		pinctrl-names = "default";
+		pinctrl-0 = <&mcu_rgmii_phy_reset>;
 		reg = <0>;
-		ti,rx-internal-delay = <DP83867_RGMIIDCTL_2_00_NS>;
-		ti,fifo-depth = <DP83867_PHYCR_FIFO_DEPTH_4_B_NIB>;
+		compatible = "ethernet-phy-ieee802.3-c22";
 		rtl821x,aldps-disable;
 		rtl821x,clkout-disable;
-		resets = <&mcu_rgmii_phy_reset>;
+		reset-gpios = <&wkup_gpio0 3 GPIO_ACTIVE_LOW>;
+		reset-assert-us = <35000>;
+		reset-deassert-us = <75000>;
 	};
 };
 
