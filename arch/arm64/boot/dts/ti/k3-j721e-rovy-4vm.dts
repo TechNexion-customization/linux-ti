@@ -625,7 +625,7 @@
 	phy0: ethernet-phy@0 {
 		pinctrl-names = "default";
 		pinctrl-0 = <&mcu_rgmii_phy_reset>;
-		reg = <0>;
+		reg = <1>;
 		compatible = "ethernet-phy-ieee802.3-c22";
 		rtl821x,aldps-disable;
 		rtl821x,clkout-disable;
