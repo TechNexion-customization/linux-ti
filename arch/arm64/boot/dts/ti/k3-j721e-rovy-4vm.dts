@@ -97,6 +97,17 @@
 			 <3300000 0x1>;
 	};
 
+	reg_usb_otg_vbus: usb_otg_vbus {
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_otg_vbus>;
+		compatible = "regulator-fixed";
+		regulator-name = "usb_otg_vbus";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&main_gpio1 5 GPIO_ACTIVE_LOW>;
+		enable-active-low;
+	};
+
 
 	// cpsw9g_virt_mac: main_r5fss_cpsw9g_virt_mac0 {
 	// 	compatible = "ti,j721e-cpsw-virt-mac";
@@ -221,10 +232,21 @@
 		>;
 	};
 
+	pinctrl_otg_vbus: pinctrl-otg-vbus {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x218, PIN_OUTPUT, 7) /* (W2) I3C0_SCL.GPIO1_5 */
+		>;
+	};
+
+	typec_hd3ss3220_pins_default: typec-hd3ss3220-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x260, PIN_INPUT, 7) /* (T28) MMC2_DAT3.GPIO1_23 */
+		>;
+	};
+
 	main_usbss0_pins_default: main-usbss0-pins-default {
 		pinctrl-single,pins = <
-			J721E_IOPAD(0x290, PIN_OUTPUT, 0) /* (U6) USB0_DRVVBUS */
-			J721E_IOPAD(0x210, PIN_INPUT, 7) /* (W3) MCAN1_RX.GPIO1_3 */
+			J721E_IOPAD(0x17c, PIN_INPUT, 7) /* (U24) RGMII5_RD2.GPIO0_94 */
 		>;
 	};
 
@@ -501,23 +523,23 @@
 };
 
 &serdes_ln_ctrl {
-	idle-states = <J721E_SERDES0_LANE0_PCIE0_LANE0>, <J721E_SERDES0_LANE1_QSGMII_LANE2>,
-		      <J721E_SERDES1_LANE0_PCIE1_LANE0>, <J721E_SERDES1_LANE1_PCIE1_LANE1>,
+	idle-states = <J721E_SERDES0_LANE0_PCIE0_LANE0>, <J721E_SERDES0_LANE1_PCIE0_LANE1>,
+		      <J721E_SERDES1_LANE0_PCIE1_LANE0>, <J721E_SERDES1_LANE1_USB3_1>,
 		      <J721E_SERDES2_LANE0_PCIE2_LANE0>, <J721E_SERDES2_LANE1_PCIE2_LANE1>,
-		      <J721E_SERDES3_LANE0_USB3_0_SWAP>, <J721E_SERDES3_LANE1_USB3_0>,
-		      <J721E_SERDES4_LANE0_EDP_LANE0>, <J721E_SERDES4_LANE1_EDP_LANE1>,
-		      <J721E_SERDES4_LANE2_EDP_LANE2>, <J721E_SERDES4_LANE3_EDP_LANE3>;
+		      <J721E_SERDES3_LANE0_PCIE3_LANE0>, <J721E_SERDES3_LANE1_USB3_0>,
+		      <J721E_SERDES4_LANE0_QSGMII_LANE5>, <J721E_SERDES4_LANE1_QSGMII_LANE6>,
+		      <J721E_SERDES4_LANE2_QSGMII_LANE7>, <J721E_SERDES4_LANE3_QSGMII_LANE8>;
 };
 
-&serdes_wiz3 {
-	typec-dir-gpios = <&main_gpio1 3 GPIO_ACTIVE_HIGH>;
-	typec-dir-debounce-ms = <700>;	/* TUSB321, tCCB_DEFAULT 133 ms */
-};
+// &serdes_wiz3 {
+// 	typec-dir-gpios = <&main_gpio1 3 GPIO_ACTIVE_HIGH>;
+// 	typec-dir-debounce-ms = <700>;	/* TUSB321, tCCB_DEFAULT 133 ms */
+// };
 
 &serdes3 {
-	serdes3_usb_link: phy@0 {
-		reg = <0>;
-		cdns,num-lanes = <2>;
+	serdes3_usb_link: phy@1 {
+		reg = <1>;
+		cdns,num-lanes = <1>;
 		#phy-cells = <0>;
 		cdns,phy-type = <PHY_TYPE_USB3>;
 		resets = <&serdes_wiz3 1>, <&serdes_wiz3 2>;
@@ -535,6 +557,27 @@
 	maximum-speed = "super-speed";
 	phys = <&serdes3_usb_link>;
 	phy-names = "cdns3,usb3-phy";
+	power-active-low;
+	vbus-supply = <&reg_usb_otg_vbus>;
+
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+			otg1_out_ep: endpoint {
+				remote-endpoint = <&hd3ss3220_in_ep>;
+			};
+		};
+
+		port@1 {
+			reg = <1>;
+			otg1_in_ep: endpoint {
+				remote-endpoint = <&hd3ss3220_out_ep>;
+			};
+		};
+	};
 };
 
 &usbss1 {
@@ -585,7 +628,34 @@
 	pinctrl-0 = <&main_i2c0_pins_default>;
 	clock-frequency = <400000>;
 
+	typec_hd3ss3220: hd3ss3220@47 {
+		compatible = "ti,hd3ss3220";
+		interrupt-parent = <&main_gpio1>;
+		interrupts = <23 IRQ_TYPE_LEVEL_LOW>;
+//		interrupts-extended = <&main_gpio1 23 IRQ_TYPE_LEVEL_LOW>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&typec_hd3ss3220_pins_default>;
+		reg = <0x47>;
 
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+				hd3ss3220_in_ep: endpoint {
+					remote-endpoint = <&otg1_out_ep>;
+				};
+			};
+
+			port@1 {
+				reg = <1>;
+				hd3ss3220_out_ep: endpoint {
+					remote-endpoint = <&otg1_in_ep>;
+				};
+			};
+		};
+	};
 };
 
 &main_i2c1 {
