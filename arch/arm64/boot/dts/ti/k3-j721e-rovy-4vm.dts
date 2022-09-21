@@ -632,9 +632,9 @@
 		compatible = "ti,hd3ss3220";
 		interrupt-parent = <&main_gpio1>;
 		interrupts = <23 IRQ_TYPE_LEVEL_LOW>;
-//		interrupts-extended = <&main_gpio1 23 IRQ_TYPE_LEVEL_LOW>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&typec_hd3ss3220_pins_default>;
+		vbus-supply = <&reg_usb_otg_vbus>;
 		reg = <0x47>;
 
 		ports {
