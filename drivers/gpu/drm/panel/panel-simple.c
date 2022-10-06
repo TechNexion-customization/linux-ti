@@ -4472,6 +4472,17 @@ static const struct drm_display_mode vizionpanel_mode = {
 	.vsync_start = 800 + 3,
 	.vsync_end = 800 + 3 + 10,
 	.vtotal = 800 + 3 + 10 + 10,
+
+	.crtc_clock = 68900, /* 68900, */
+	.crtc_hdisplay = 1280,
+	.crtc_hsync_start = 1280 + 40,
+	.crtc_hsync_end = 1280 + 40 + 80,
+	.crtc_htotal = 1280 + 40 + 80 + 40,
+	.crtc_vdisplay = 800,
+	.crtc_vsync_start = 800 + 3,
+	.crtc_vsync_end = 800 + 3 + 10,
+	.crtc_vtotal = 800 + 3 + 10 + 10,
+	.flags = DRM_MODE_FLAG_NVSYNC | DRM_MODE_FLAG_NHSYNC,
 };
 
 static const struct panel_desc_dsi vizionpanel = {
