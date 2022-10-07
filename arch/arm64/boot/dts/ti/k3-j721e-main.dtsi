@@ -1662,7 +1662,7 @@
 	};
 
 	dsi0: dsi@48000000 {
-		compatible = "cdns,dsi";
+		compatible = "ti,j721e-dsi";
 		reg = <0x0 0x04800000 0x0 0x100000>, <0x0 0x04710000 0x0 0x100>;
 		clocks = <&k3_clks 150 1>, <&k3_clks 150 5>;
 		clock-names = "dsi_p_clk", "dsi_sys_clk";
@@ -2831,7 +2831,7 @@
 	};
 
 	dphy2: phy@4480000 {
-		compatible = "cdns,dphy";
+		compatible = "ti,j721e-dphy", "cdns,dphy";
 		reg = <0x0 0x04480000 0x0 0x1100>;
 		clocks = <&k3_clks 296 1>, <&k3_clks 296 3>;
 		clock-names = "psm", "pll_ref";
