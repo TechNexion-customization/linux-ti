@@ -4463,7 +4463,7 @@ static const struct drm_display_mode boe_tv080wum_nl0_mode = {
 /* Richard */
 /* VXT VL101-12880YL-C01_spec.pdf */
 static const struct drm_display_mode vizionpanel_mode = {
-	.clock = 68900,
+	.clock = 66600,
 	.hdisplay = 1280,
 	.hsync_start = 1280 + 40,
 	.hsync_end = 1280 + 40 + 80,
@@ -4473,7 +4473,7 @@ static const struct drm_display_mode vizionpanel_mode = {
 	.vsync_end = 800 + 3 + 10,
 	.vtotal = 800 + 3 + 10 + 10,
 
-	.crtc_clock = 68900, /* 68900, */
+	.crtc_clock = 66600,
 	.crtc_hdisplay = 1280,
 	.crtc_hsync_start = 1280 + 40,
 	.crtc_hsync_end = 1280 + 40 + 80,
