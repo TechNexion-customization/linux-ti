@@ -1,0 +1,86 @@
+// SPDX-License-Identifier: GPL-2.0
+/**
+ * DT Overlay for Technexion AR series camera interfaced with CSI2 on J721E-EAIK board.
+ *
+ * Copyright (C) 2022 Technexion Ltd.
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/pinctrl/k3.h>
+
+&main_pmx0 {
+
+	main_rovy_cam0_pins_default: main-rovy-cam0-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x108, PIN_OUTPUT, 7) /* (AD27) PRG0_PRU1_GPO2.GPIO0_65 */
+			J721E_IOPAD(0x10c, PIN_OUTPUT, 7) /* (AC25) PRG0_PRU1_GPO3.GPIO0_66 */
+		>;
+	};
+};
+
+&main_i2c2 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	pca9554_0: pca9554_0@25 {
+		compatible = "nxp,pca9554";
+		reg = <0x25>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		status = "okay";
+	};
+
+	tevi_ap1302_otp_0: tevi_ap1302_otpi_0@54 {
+		compatible = "atmel,24c1024";
+		reg = <0x54>;
+		pagesize = <128>;
+		status = "okay";
+	};
+
+	ap1302_0: ap1302_0@3d {
+		compatible = "tn,tevi-ap1302";
+		reg = <0x3d>;
+
+		pinctrl-names = "default";
+		pinctrl-0 = <&main_rovy_cam0_pins_default>;
+
+		host-power-gpios = <&main_gpio0 66 GPIO_ACTIVE_HIGH>;	//CSI0_PWDN_GPIO0_66
+		reset-gpios = <&main_gpio0 65 GPIO_ACTIVE_HIGH>;	//CSI0_RST_N_GPIO0_65
+		device-power-gpios = <&pca9554_0 0 GPIO_ACTIVE_HIGH>;
+		standby-gpios = <&pca9554_0 2 GPIO_ACTIVE_HIGH>;
+
+		nvmem = <&tevi_ap1302_otp_0>;
+		nvmem-names = "calib-data";
+		pixel-rate = <61430400>; /* 61.43MHz */
+		// pixel-rate = <614304000>; /* 184.29MHz */
+		data-lanes = <2>;
+		continuous-clock = <0>;
+		status = "okay";
+
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port {
+			csi2_cam0: endpoint {
+				remote-endpoint = <&csi2rx0_in_sensor>;
+				clock-lanes = <0>;
+				data-lanes = <1 2>;
+			};
+		};
+	};
+};
+
+&csi0_port0 {
+	status = "okay";
+	csi2rx0_in_sensor: endpoint {
+		remote-endpoint = <&csi2_cam0>;
+		bus-type = <4>; /* CSI2 DPHY. */
+		clock-lanes = <0>;
+		data-lanes = <1 2>;
+	};
+};
+
