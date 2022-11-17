@@ -1,0 +1,96 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * DT Overlay for Technexion AR series camera interfaced with CSI2 on ROVY-Nano board.
+ * Copyright (C) 2021 Texas Instruments Incorporated - http://www.ti.com/
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/pinctrl/k3.h>
+
+/ {
+	fragment@101 {
+		target-path = "/";
+
+		__overlay__ {
+			clk_fusion_25M_fixed: fixed-clock-25M {
+				compatible = "fixed-clock";
+				#clock-cells = <0>;
+				clock-frequency = <25000000>;
+			};
+		};
+	};
+};
+
+&main_i2c2 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	pca9554_0: pca9554_0@25 {
+		compatible = "nxp,pca9554";
+		reg = <0x25>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		status = "disabled";
+	};
+	deser@30 {
+		compatible = "ti,ds90ub960-q1";
+
+		reg-names = "main",
+			"rxport0", "rxport1", "rxport2", "rxport3",
+			"ser0", "ser1", "ser2", "ser3";
+		reg = <0x30>,
+			<0x50>, <0x51>, <0x52>, <0x53>,
+			<0x54>, <0x55>, <0x56>, <0x57>;
+
+		clocks = <&clk_fusion_25M_fixed>;
+
+		i2c-alias-pool = /bits/ 16 <0x5a 0x5b 0x5c 0x5d 0x5e 0x5f 0x60 0x61 0x62 0x63 0x64 0x65 0x66 0x67 0x68 0x69>;
+
+		data-rate = <1600000000>;
+
+		status = "okay";
+
+		ds90ub960_ports: ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			/* CSI-2 */
+			port@4 {
+				reg = <4>;
+				ds90ub960_csi_out: endpoint {
+					clock-lanes = <0>;
+					data-lanes = <1 2>;
+					remote-endpoint = <&csi2_phy0>;
+					status = "okay";
+				};
+			};
+		};
+
+		ds90ub960_atr: i2c-atr {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+		};
+	};
+};
+
+&csi0_port0 {
+	status = "okay";
+
+	csi2_phy0: endpoint {
+		remote-endpoint = <&ds90ub960_csi_out>;
+		clock-lanes = <0>;
+		bus-type = <4>; /* CSI2 DPHY. */
+		data-lanes = <1 2>;
+		status = "okay";
+	};
+};
+
+&csi1_port0 {
+	status = "disabled";
+};
