@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0
-/**
- * DT Overlay for RPi 7inch touchscreen panel interfaced with DSI on
- * beagleboneai64 board.
+/*
+ * Copyright 2022 Technexion Ltd.
  *
- * Copyright (C) 2021 Texas Instruments Incorporated - https://www.ti.com/
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *
  */
 
 /dts-v1/;
@@ -18,7 +18,7 @@
 		target-path = "/";
 
 		__overlay__ {
-			model = "TechNexion rovy-nano - vizionpanel-vl10112880";
+			model = "TechNexion ROVY-AM68 and EVM baseboard with Vizionpanel 10.1 inch LVDS panel";
 
 		};
 	};

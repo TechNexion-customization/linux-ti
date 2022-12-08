@@ -10,8 +10,9 @@
 / {
 	memory@80000000 {
 		device_type = "memory";
-		/* 2G RAM - for ROVY-4VM rev 01*/
-		reg = <0x00000000 0x80000000 0x00000000 0x80000000>;
+		/* 4G RAM */
+		reg = <0x00000000 0x80000000 0x00000000 0x80000000>,
+		      <0x00000008 0x80000000 0x00000000 0x80000000>;
 	};
 
 	reserved_memory: reserved-memory {

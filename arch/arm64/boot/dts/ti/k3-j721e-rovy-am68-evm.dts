@@ -5,14 +5,14 @@
 
 /dts-v1/;
 
-#include "k3-j721e-rovy.dtsi"
+#include "k3-j721e-rovy-am68.dtsi"
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/input/input.h>
 #include <dt-bindings/net/ti-dp83867.h>
 #include <dt-bindings/phy/phy-cadence.h>
 
 / {
-	model = "ROVY-4VM, Texas Instruments K3 J721E SoC";
+	model = "TechNexion ROVY-AM68 and EVM baseboard";
 
 	chosen {
 		stdout-path = "serial2:115200n8";
