@@ -93,7 +93,7 @@ static struct sensor_info ap1302_sensor_table[] = {
 
 static int sensor_standby(struct i2c_client *client, int enable);
 
-static int __i2c_read(struct i2c_client *client, u16 reg, u8 *val, u8 size)
+static int sensor_i2c_read(struct i2c_client *client, u16 reg, u8 *val, u8 size)
 {
 	struct i2c_msg msg[2];
 	u8 buf[2];
@@ -119,7 +119,7 @@ static int sensor_i2c_read_16b(struct i2c_client *client, u16 reg, u16 *value)
 	u8 v[2] = {0,0};
 	int ret;
 
-	ret = __i2c_read(client, reg, v, 2);
+	ret = sensor_i2c_read(client, reg, v, 2);
 
 	if (unlikely(ret < 0)) {
 		dev_err(&client->dev, "i2c transfer error.\n");
@@ -137,7 +137,7 @@ static int sensor_i2c_write_16b(struct i2c_client *client, u16 reg, u16 val)
 {
 	struct i2c_msg msg;
 	u8 buf[4];
-	int ret;
+	int retry_tmp = 0;
 
 	buf[0] = reg >> 8;
 	buf[1] = reg & 0xff;
@@ -149,11 +149,18 @@ static int sensor_i2c_write_16b(struct i2c_client *client, u16 reg, u16 val)
 	msg.buf = buf;
 	msg.len = sizeof(buf);
 
-	ret = i2c_transfer(client->adapter, &msg, 1);
-	if (ret < 0)
+
+	while((i2c_transfer(client->adapter, &msg, 1)) < 0)
 	{
-		dev_err(&client->dev, "i2c transfer error.\n");
-		return -EIO;
+		retry_tmp++;
+		dev_err(&client->dev, "i2c transfer retry:%d.\n", retry_tmp);
+		dev_dbg(&client->dev, "write 16b reg:%x val:%x.\n", reg, val);
+
+		if (retry_tmp > 50)
+		{
+			dev_err(&client->dev, "i2c transfer error.\n");
+			return -EIO;
+		}
 	}
 
 	return 0;
@@ -162,7 +169,7 @@ static int sensor_i2c_write_16b(struct i2c_client *client, u16 reg, u16 val)
 static int sensor_i2c_write_bust(struct i2c_client *client, u8 *buf, size_t len)
 {
 	struct i2c_msg msg;
-	int ret;
+	int retry_tmp = 0;
 
 	if (len == 0) {
 		return 0;
@@ -173,11 +180,17 @@ static int sensor_i2c_write_bust(struct i2c_client *client, u8 *buf, size_t len)
 	msg.buf = buf;
 	msg.len = len;
 
-	ret = i2c_transfer(client->adapter, &msg, 1);
-	if (ret < 0)
+	while((i2c_transfer(client->adapter, &msg, 1)) < 0)
 	{
-		dev_err(&client->dev, "i2c transfer error.\n");
-		return -EIO;
+		retry_tmp++;
+		dev_err(&client->dev, "i2c transfer retry:%d.\n", retry_tmp);
+		dev_dbg(&client->dev, "write bust buf:%x.\n", client->addr);
+
+		if (retry_tmp > 50)
+		{
+			dev_err(&client->dev, "i2c transfer error.\n");
+			return -EIO;
+		}
 	}
 
 	return 0;
@@ -246,7 +259,7 @@ static int ops_set_frame_interval(struct v4l2_subdev *sub_dev,
 static int ops_set_stream(struct v4l2_subdev *sub_dev, int enable)
 {
 	struct sensor *instance = container_of(sub_dev, struct sensor, v4l2_subdev);
-		int ret = 0;
+	int ret = 0;
 
 	dev_dbg(sub_dev->dev, "%s() enable [%x]\n", __func__, enable);
 
@@ -282,14 +295,14 @@ static int ops_set_stream(struct v4l2_subdev *sub_dev, int enable)
 	return ret;
 }
 
-static int main_set_ctrl(struct v4l2_ctrl *ctrl) {
+static int ap1302_set_ctrl(struct v4l2_ctrl *ctrl) {
 
 	return 0;
 }
 
 
-static const struct v4l2_ctrl_ops main_ctrl_ops = {
-	.s_ctrl = main_set_ctrl,
+static const struct v4l2_ctrl_ops ap1302_ctrl_ops = {
+	.s_ctrl = ap1302_set_ctrl,
 };
 
 static void ops_init_formats(struct v4l2_subdev_state *state)
@@ -646,17 +659,24 @@ static int set_standby_mode_rel419(struct i2c_client *client, int enable)
 		 dev_err(&client->dev, "timeout: line[%d]v=%x\n", __LINE__, v);
 		 return -EINVAL;
 		}
-
-		if(check_sensor_chip_id(client, &v) == 0) {
-			if (v == 0x356) {
-				dev_dbg(&client->dev, "sensor check: v=0x%x\nrecover status from fw stall gate frames.\n", v);
-				sensor_i2c_write_16b(client, 0x601a, 0x8340);
-				msleep(10);
+		for (timeout = 0 ; timeout < 500 ; timeout ++) {
+			if(check_sensor_chip_id(client, &v) == 0) {
+				if (v == 0x356) {
+					dev_dbg(&client->dev, "sensor check: v=0x%x\nrecover status from fw stall gate frames.\n", v);
+					sensor_i2c_write_16b(client, 0x601a, 0x8340);
+					msleep(10);
+					break;
+				}
 			}
 		}
 
-		sensor_i2c_read_16b(client, 0x601a, &v);
-		if ((v & 0x200) != 0x200){
+		for (timeout = 0 ; timeout < 100 ; timeout ++) {
+			usleep_range(9000, 10000);
+			sensor_i2c_read_16b(client, 0x601a, &v);
+			if ((v & 0x200) == 0x200)
+				break;
+		}
+		if ( (v & 0x200) != 0x200 ) {
 			dev_dbg(&client->dev, "stop waking up: camera is working.\n");
 			return 0;
 		}
@@ -711,8 +731,12 @@ static int sensor_standby(struct i2c_client *client, int enable)
 	u16 checksum = 0;
 	dev_dbg(&client->dev, "%s():enable=%d\n", __func__, enable);
 
-	sensor_i2c_read_16b(client, 0x6134, &checksum);
-
+	for (timeout = 0 ; timeout < 50 ; timeout ++) {
+		usleep_range(9000, 10000);
+		sensor_i2c_read_16b(client, 0x6134, &checksum);
+		if (checksum == 0xFFFF)
+			break;
+	}
 	if(checksum != 0xFFFF){
 		return set_standby_mode_rel419(client, enable); // standby for rel419
 	}
@@ -859,7 +883,7 @@ static int sensor_init_controls(struct sensor *instance, int pixel_rate)
 	if (ret)
 		return ret;
 
-	instance->pixel_rate = v4l2_ctrl_new_std(ctrl_hdlr, &main_ctrl_ops,
+	instance->pixel_rate = v4l2_ctrl_new_std(ctrl_hdlr, &ap1302_ctrl_ops,
 		V4L2_CID_PIXEL_RATE,
 		pixel_rate,
 		pixel_rate, 1,
@@ -885,6 +909,7 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 	int pixel_rate;
 	int i;
 	int ret;
+	int retry_f;
 
 	dev_info(&client->dev, "%s() device node: %s\n",
 		       __func__, client->dev.of_node->full_name);
@@ -940,28 +965,54 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 	dev_dbg(dev, "data-lanes [%d] ,continuous-clock [%d]\n",
 		data_lanes, continuous_clock);
 
-	if (sensor_try_on(instance) != 0) {
-		return -EINVAL;
-	}
+	retry_f = 0x01;
+	/*
+	bit 0: start bit
+	bit 1: sensor_try_on fail
+	bit 2: ap1302_otp_flash_init fail
+	bit 3: sensor_load_bootdata fail
+	bit 4-7: retry count
+	*/
+	while(retry_f) {
+		retry_f &= ~0x01;
 
-	instance->otp_flash_instance = ap1302_otp_flash_init(dev);
-	if(IS_ERR(instance->otp_flash_instance)) {
-		dev_err(dev, "otp flash init failed\n");
-		return -EPROBE_DEFER;
-	}
+		if (sensor_try_on(instance) != 0) {
+			retry_f |= 0x02 ;
+		}
 
-	header = instance->otp_flash_instance->header_data;
-	for(i = 0 ; i < ARRAY_SIZE(ap1302_sensor_table); i++)
-	{
-		if (strcmp((const char*)header->product_name, ap1302_sensor_table[i].sensor_name) == 0)
-			break;
-	}
-	instance->selected_sensor = i;
-	dev_dbg(dev, "selected_sensor:%d, sensor_name:%s\n", i, header->product_name);
+		instance->otp_flash_instance = ap1302_otp_flash_init(dev);
+		if(IS_ERR(instance->otp_flash_instance)) {
+			dev_err(dev, "otp flash init failed\n");
+			// retry_f |= 0x04 ;
+			return -EPROBE_DEFER;
+		}
 
-	if(sensor_load_bootdata(instance) != 0) {
-		dev_err(dev, "load bootdata failed\n");
-		return -EINVAL;
+		header = instance->otp_flash_instance->header_data;
+		for(i = 0 ; i < ARRAY_SIZE(ap1302_sensor_table); i++)
+		{
+			if (strcmp((const char*)header->product_name, ap1302_sensor_table[i].sensor_name) == 0)
+				break;
+		}
+		instance->selected_sensor = i;
+		dev_dbg(dev, "selected_sensor:%d, sensor_name:%s\n", i, header->product_name);
+
+		if(sensor_load_bootdata(instance) != 0) {
+			dev_err(dev, "load bootdata failed\n");
+			retry_f |= 0x08 ;
+		}
+
+		if ((retry_f & 0x0F) != 0x00) {
+			if (((retry_f & 0x30) >> 4 ) < 3 ) {
+				retry_f += 1 << 4;
+				retry_f &= ~0x0F;
+				dev_err(dev, "Probe retry:%d.\n", ((retry_f & 0x30) >> 4 ));
+			}
+			else {
+				retry_f &= 0x00;
+				dev_dbg(dev, "Probe retry failed\n");
+				return  -EINVAL;
+			}
+		}
 	}
 
 	fmt = &instance->fmt;
