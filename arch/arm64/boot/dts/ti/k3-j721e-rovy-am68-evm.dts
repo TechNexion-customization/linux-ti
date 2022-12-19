@@ -270,9 +270,15 @@
 		>;
 	};
 
-	main_i2c1_exp4_pins_default: main-i2c1-exp4-pins-default {
+	tca9555_21_irq_pins_default: tca9555-21-irq-pins-default {
 		pinctrl-single,pins = <
 			J721E_IOPAD(0x230, PIN_INPUT, 7) /* (U2) ECAP0_IN_APWM_OUT.GPIO1_11 */
+		>;
+	};
+
+	tca9555_22_irq_pins_default: tca9555-22-irq-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x234, PIN_INPUT, 7) /* (U3) EXT_REFCLK1.GPIO1_12 */
 		>;
 	};
 
@@ -635,19 +641,29 @@
 
 	tca9555_21: tca9555_21@21 {
 		compatible = "nxp,pca9555";
-		pinctrl-names = "default";
 		reg =<0x21>;
 		gpio-controller;
 		#gpio-cells = <2>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&tca9555_21_irq_pins_default>;
+		interrupt-parent = <&main_gpio1>;
+		interrupts = <11 IRQ_TYPE_EDGE_FALLING>;
+		interrupt-controller;
+		#interrupt-cells = <2>;
 		status = "okay";
 	};
 
 	tca9555_22: tca9555_22@22 {
 		compatible = "nxp,pca9555";
-		pinctrl-names = "default";
 		reg =<0x22>;
 		gpio-controller;
 		#gpio-cells = <2>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&tca9555_22_irq_pins_default>;
+		interrupt-parent = <&main_gpio1>;
+		interrupts = <12 IRQ_TYPE_EDGE_FALLING>;
+		interrupt-controller;
+		#interrupt-cells = <2>;
 		status = "okay";
 	};
 };
