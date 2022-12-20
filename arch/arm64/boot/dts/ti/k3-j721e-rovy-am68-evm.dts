@@ -282,41 +282,6 @@
 		>;
 	};
 
-	main_i2c0_pins_default: main-i2c0-pins-default {
-		pinctrl-single,pins = <
-			J721E_IOPAD(0x220, PIN_INPUT_PULLUP, 0) /* (AC5) I2C0_SCL */
-			J721E_IOPAD(0x224, PIN_INPUT_PULLUP, 0) /* (AA5) I2C0_SDA */
-		>;
-	};
-
-	main_i2c1_pins_default: main-i2c1-pins-default {
-		pinctrl-single,pins = <
-			J721E_IOPAD(0x228, PIN_INPUT_PULLUP, 0) /* (Y6) I2C1_SCL */
-			J721E_IOPAD(0x22c, PIN_INPUT_PULLUP, 0) /* (AA6) I2C1_SDA */
-		>;
-	};
-
-	main_i2c2_pins_default: main-i2c2-pins-default {
-		pinctrl-single,pins = <
-			J721E_IOPAD(0x1c8, PIN_INPUT_PULLUP, 2) /* (AB5) SPI0_CLK.I2C2_SCL */
-			J721E_IOPAD(0x1cc, PIN_INPUT_PULLUP, 2) /* (AA1) SPI0_D0.I2C2_SDA */
-		>;
-	};
-
-	main_i2c5_pins_default: main-i2c5-pins-default {
-		pinctrl-single,pins = <
-			J721E_IOPAD(0x150, PIN_INPUT_PULLUP, 2) /* (Y26) PRG0_MDIO0_MDIO.I2C5_SCL */
-			J721E_IOPAD(0x154, PIN_INPUT_PULLUP, 2) /* (AA27) PRG0_MDIO0_MDC.I2C5_SDA */
-		>;
-	};
-
-	main_i2c6_pins_default: main-i2c6-pins-default {
-		pinctrl-single,pins = <
-			J721E_IOPAD(0x170, PIN_INPUT_PULLUP, 2) /* (U29) RGMII5_TXC.I2C6_SCL */
-			J721E_IOPAD(0x174, PIN_INPUT_PULLUP, 2) /* (U25) RGMII5_RXC.I2C6_SDA */
-		>;
-	};
-
 	mcasp10_pins_default: mcasp10-pins-default {
 		pinctrl-single,pins = <
 			J721E_IOPAD(0x158, PIN_OUTPUT_PULLDOWN, 12) /* (U23) RGMII5_TX_CTL.MCASP10_ACLKX */
@@ -591,11 +556,7 @@
 	};
 };
 
-&main_i2c0 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&main_i2c0_pins_default>;
-	clock-frequency = <400000>;
-
+&main_i2c0 { /* I2C_A */
 	typec_hd3ss3220: hd3ss3220@47 {
 		compatible = "ti,hd3ss3220";
 		interrupt-parent = <&main_gpio1>;
@@ -626,19 +587,7 @@
 	};
 };
 
-&main_i2c1 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&main_i2c1_pins_default>;
-	clock-frequency = <400000>;
-
-
-};
-
-&main_i2c2 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&main_i2c2_pins_default>;
-	clock-frequency = <400000>;
-
+&main_i2c2 { /* I2C_C */
 	tca9555_21: tca9555_21@21 {
 		compatible = "nxp,pca9555";
 		reg =<0x21>;
@@ -672,20 +621,6 @@
 	/* Confiure AUDIO_EXT_REFCLK2 pin as output */
 	pinctrl-names = "default";
 	pinctrl-0 = <&audi_ext_refclk2_pins_default>;
-};
-
-&main_i2c5 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&main_i2c5_pins_default>;
-	clock-frequency = <400000>;
-
-};
-
-&main_i2c6 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&main_i2c6_pins_default>;
-	clock-frequency = <400000>;
-
 };
 
 &mcu_cpsw {
