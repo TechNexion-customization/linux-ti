@@ -401,6 +401,12 @@ static int exc3000_probe(struct i2c_client *client)
 					  client->name, data);
 	if (error)
 		return error;
+	else
+	{
+		u8 *buf = data->buf;
+		i2c_master_send(client, "'", 2);
+		i2c_master_recv(client, buf, EXC3000_LEN_FRAME);
+	}
 
 	/*
 	 * I²C does not have built-in recovery, so retry on failure. This
