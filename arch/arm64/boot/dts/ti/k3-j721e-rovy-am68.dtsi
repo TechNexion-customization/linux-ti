@@ -196,6 +196,24 @@
 			J721E_IOPAD(0x174, PIN_INPUT_PULLUP, 2) /* (U25) RGMII5_RXC.I2C6_SDA */
 		>;
 	};
+
+	mcasp6_pins_default: mcasp6-pins-default { /* AUD_A */
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x4, PIN_INPUT, 12) /* (AC23) PRG1_PRU0_GPO0.MCASP6_ACLKX */
+			J721E_IOPAD(0x8, PIN_INPUT, 12) /* (AG22) PRG1_PRU0_GPO1.MCASP6_AFSX */
+			J721E_IOPAD(0xc, PIN_OUTPUT, 12) /* (AF22) PRG1_PRU0_GPO2.MCASP6_AXR0 */
+			J721E_IOPAD(0x10, PIN_INPUT, 12) /* (AJ23) PRG1_PRU0_GPO3.MCASP6_AXR1 */
+		>;
+	};
+
+	mcasp10_pins_default: mcasp10-pins-default { /* AUD_B */
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x158, PIN_OUTPUT, 12) /* (U23) RGMII5_TX_CTL.MCASP10_ACLKX */
+			J721E_IOPAD(0x15c, PIN_OUTPUT, 12) /* (U26) RGMII5_RX_CTL.MCASP10_AFSX */
+			J721E_IOPAD(0x160, PIN_OUTPUT, 12) /* (V28) RGMII5_TD3.MCASP10_AXR0 */
+			J721E_IOPAD(0x164, PIN_INPUT, 12) /* (V29) RGMII5_TD2.MCASP10_AXR1 */
+		>;
+	};
 };
 
 &wkup_pmx0 {
@@ -431,4 +449,83 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&main_i2c6_pins_default>;
 	clock-frequency = <400000>;
+};
+
+&mcasp0 { /* Unused */
+	status = "disabled";
+};
+
+&mcasp1 { /* Unused */
+	status = "disabled";
+};
+
+&mcasp2 { /* Unused */
+	status = "disabled";
+};
+
+&mcasp3 { /* Unused */
+	status = "disabled";
+};
+
+&mcasp4 { /* Unused */
+	status = "disabled";
+};
+
+&mcasp5 { /* Unused */
+	status = "disabled";
+};
+
+&mcasp6 { /* AUD_A */
+	#sound-dai-cells = <0>;
+
+	pinctrl-names = "default";
+	pinctrl-0 = <&mcasp6_pins_default>;
+
+	op-mode = <0>;          /* MCASP_IIS_MODE */
+	tdm-slots = <2>;
+
+	serial-dir = <  /* 0: INACTIVE, 1: TX, 2: RX */
+		1 2 0 0
+		0 0 0 0
+		0 0 0 0
+		0 0 0 0
+	>;
+	tx-num-evt = <32>;
+	rx-num-evt = <32>;
+};
+
+&mcasp7 { /* Unused */
+	status = "disabled";
+};
+
+&mcasp8 { /* Unused */
+	status = "disabled";
+};
+
+&mcasp9 { /* Unused */
+	status = "disabled";
+};
+
+&mcasp10 { /* AUD_B */
+	#sound-dai-cells = <0>;
+
+	pinctrl-names = "default";
+	pinctrl-0 = <&mcasp10_pins_default>;
+
+	op-mode = <0>;          /* MCASP_IIS_MODE */
+	tdm-slots = <2>;
+	//auxclk-fs-ratio = <256>;
+
+	serial-dir = <	/* 0: INACTIVE, 1: TX, 2: RX */
+		1 2 0 0
+		0 0 0 0
+		0 0 0 0
+		0 0 0 0
+	>;
+	tx-num-evt = <32>;
+	rx-num-evt = <32>;
+};
+
+&mcasp11 { /* Unused */
+	status = "disabled";
 };
