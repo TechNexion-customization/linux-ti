@@ -356,6 +356,32 @@ static int rtl8211f_config_init(struct phy_device *phydev)
 		return ret;
 	}
 
+	if (priv->has_phycr2) {
+		ret = phy_modify_paged(phydev, 0xa43, RTL8211F_PHYCR2,
+				       RTL8211F_CLKOUT_EN, priv->phycr2);
+		if (ret < 0) {
+			dev_err(dev, "clkout configuration failed: %pe\n",
+				ERR_PTR(ret));
+			return ret;
+		}
+	}
+
+	oldpage = phy_select_page(phydev, RTL8211F_PHYLED_PAGE);
+	if (oldpage < 0)
+		dev_err(&phydev->mdio.dev, "select page failed\n");
+
+	/* disable EEE LED*/
+	ret = __phy_write(phydev, RTL8211F_EEE_LED_REG, 0x0000);
+	if (ret < 0)
+		dev_err(&phydev->mdio.dev, "write EEE register failed\n");
+
+	/* setting 1000Mbps for orange LED, 100Mbps for green LED */
+	ret = __phy_write(phydev, RTL8211F_LED_REG, 0x091f);
+	if (ret < 0)
+		dev_err(&phydev->mdio.dev, "select LED register failed\n");
+
+	phy_restore_page(phydev, oldpage, ret);
+
 	switch (phydev->interface) {
 	case PHY_INTERFACE_MODE_RGMII:
 		val_txdly = 0;
@@ -410,32 +436,6 @@ static int rtl8211f_config_init(struct phy_device *phydev)
 			"2ns RX delay was already %s (by pin-strapping RXD0 or bootloader configuration)\n",
 			val_rxdly ? "enabled" : "disabled");
 	}
-
-	if (priv->has_phycr2) {
-		ret = phy_modify_paged(phydev, 0xa43, RTL8211F_PHYCR2,
-				       RTL8211F_CLKOUT_EN, priv->phycr2);
-		if (ret < 0) {
-			dev_err(dev, "clkout configuration failed: %pe\n",
-				ERR_PTR(ret));
-			return ret;
-		}
-	}
-
-	oldpage = phy_select_page(phydev, RTL8211F_PHYLED_PAGE);
-	if (oldpage < 0)
-		dev_err(&phydev->mdio.dev, "select page failed\n");
-
-	/* disable EEE LED*/
-	ret = __phy_write(phydev, RTL8211F_EEE_LED_REG, 0x0000);
-	if (ret < 0)
-		dev_err(&phydev->mdio.dev, "write EEE register failed\n");
-
-	/* setting 1000Mbps for orange LED, 100Mbps for green LED */
-	ret = __phy_write(phydev, RTL8211F_LED_REG, 0x091f);
-	if (ret < 0)
-		dev_err(&phydev->mdio.dev, "select LED register failed\n");
-
-	phy_restore_page(phydev, oldpage, ret);
 
 	return genphy_soft_reset(phydev);
 }
