@@ -35,6 +35,7 @@ dtb-$(CONFIG_ARCH_K3) += k3-j721e-gesi-exp-board.dtbo
 dtb-$(CONFIG_ARCH_K3) += k3-j721e-quad-port-eth-exp.dtbo
 dtb-$(CONFIG_ARCH_K3) += k3-j721e-common-proc-board-uarts.dtbo
 dtb-$(CONFIG_ARCH_K3) += k3-j721e-rovy-am68-evm.dtb
+dtb-$(CONFIG_ARCH_K3) += k3-j721e-rovy-am68-evm-4xsgmii.dtbo
 dtb-$(CONFIG_ARCH_K3) += k3-j721e-rovy-am68-evm-vizionpanel-vl10112880.dtbo
 dtb-$(CONFIG_ARCH_K3) += k3-j721e-rovy-am68-evm-vizionlink-tevi-ap1302-0-0.dtbo
 dtb-$(CONFIG_ARCH_K3) += k3-j721e-rovy-am68-evm-vizionlink-tevi-ap1302-0-1.dtbo
