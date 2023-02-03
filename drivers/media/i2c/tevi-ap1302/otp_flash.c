@@ -1,7 +1,7 @@
 #include <linux/i2c.h>
 #include "otp_flash.h"
-
-#ifdef __FAKE__
+#define DEBUG
+#ifndef __FAKE__
 #include "bootdata.h"
 
 struct otp_flash *ap1302_otp_flash_init(struct device *dev)
@@ -19,9 +19,7 @@ size_t ap1302_otp_flash_read(struct otp_flash *instance, u8 *data, int addr, siz
 	size_t l;
 
 	l = len > BOOT_DATA_WRITE_LEN ? BOOT_DATA_WRITE_LEN : len;
-
-	l = (BOOTDATA_TOTAL_SIZE - addr) < BOOT_DATA_WRITE_LEN ?
-	       BOOTDATA_TOTAL_SIZE - addr : l;
+	l = (BOOTDATA_TOTAL_SIZE - addr) < l ? BOOTDATA_TOTAL_SIZE - addr : l;
 
 	memmove(data, &((u8*)__bootdata__)[addr], l);
 	return l;
