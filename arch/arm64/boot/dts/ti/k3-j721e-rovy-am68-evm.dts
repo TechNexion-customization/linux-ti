@@ -981,6 +981,26 @@ cpsw9g_virt_maconly: main-r5fss-cpsw9g-virt-mac1 {
 	status = "disabled";
 };
 
+&csi1_port0 {
+	status = "disabled";
+};
+
+&csi1_port1 {
+	status = "disabled";
+};
+
+&csi1_port2 {
+	status = "disabled";
+};
+
+&csi1_port3 {
+	status = "disabled";
+};
+
+&csi1_port4 {
+	status = "disabled";
+};
+
 &main_ehrpwm0 {
 	status = "disabled";
 };

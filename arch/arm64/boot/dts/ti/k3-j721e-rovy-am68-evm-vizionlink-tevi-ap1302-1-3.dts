@@ -12,11 +12,11 @@
 #include <dt-bindings/interrupt-controller/irq.h>
 #include <dt-bindings/pinctrl/k3.h>
 
-&ds90ub960_ports_0 {
+&ds90ub960_ports_1 {
 	#address-cells = <1>;
 	#size-cells = <0>;
 
-	/* FPDLink RX 3 */
+	/* FPDLink RX 1 */
 	port@3 {
 		reg = <3>;
 
@@ -56,7 +56,7 @@
 	};
 };
 
-&ds90ub960_atr_0 {
+&ds90ub960_atr_1 {
 	#address-cells = <1>;
 	#size-cells = <0>;
 	status = "okay";
@@ -67,7 +67,7 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 
-		vizionlink_tevi_ap1302_otp_0: vizionlink_tevi_ap1302_otp_0@54 {
+		vizionlink_tevi_ap1302_otp_1: vizionlink_tevi_ap1302_otp_1@54 {
 			compatible = "atmel,24c1024";
 			reg = <0x54>;
 			pagesize = <128>;
@@ -75,7 +75,7 @@
 
 		};
 
-		vizionlink_pca9554_0: vizionlink_pca9554_0@25 {
+		vizionlink_pca9554_1: vizionlink_pca9554_1@25 {
 			compatible = "nxp,pca9554";
 			reg = <0x25>;
 			gpio-controller;
@@ -87,12 +87,12 @@
 			compatible = "tn,tevi-ap1302";
 			reg = <0x3d>;
 
-			host-power-gpios = <&vizionlink_pca9554_0 7 GPIO_ACTIVE_HIGH>;
-			reset-gpios = <&vizionlink_pca9554_0 4 GPIO_ACTIVE_HIGH>;
-			device-power-gpios = <&vizionlink_pca9554_0 0 GPIO_ACTIVE_HIGH>;
-			standby-gpios = <&vizionlink_pca9554_0 2 GPIO_ACTIVE_HIGH>;
+			host-power-gpios = <&vizionlink_pca9554_1 7 GPIO_ACTIVE_HIGH>;
+			reset-gpios = <&vizionlink_pca9554_1 4 GPIO_ACTIVE_HIGH>;
+			device-power-gpios = <&vizionlink_pca9554_1 0 GPIO_ACTIVE_HIGH>;
+			standby-gpios = <&vizionlink_pca9554_1 2 GPIO_ACTIVE_HIGH>;
 
-			nvmem = <&vizionlink_tevi_ap1302_otp_0>;
+			nvmem = <&vizionlink_tevi_ap1302_otp_1>;
 			nvmem-names = "calib-data";
 			// pixel-rate = <614304000>; /* 184.29MHz */
 			pixel-rate = <400000000>; /* 400.00MHz */
