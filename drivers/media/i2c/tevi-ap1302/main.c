@@ -15,7 +15,12 @@ struct sensor {
 	struct media_pad pad;
 	struct v4l2_mbus_framefmt fmt;
 	struct i2c_client *i2c_client;
+#ifndef __FAKE__
+	void *otp_flash_instance;
+#else
 	struct otp_flash *otp_flash_instance;
+#endif
+
 	struct gpio_desc *reset_gpio;
 	struct gpio_desc *host_power_gpio;
 	struct gpio_desc *device_power_gpio;
@@ -819,6 +824,74 @@ static int sensor_try_on(struct sensor *instance)
 
 static int sensor_load_bootdata(struct sensor *instance)
 {
+#ifndef __FAKE__
+	struct device *dev = &instance->i2c_client->dev;
+	int index = 0;
+	size_t len = 0;
+	size_t pll_len = 0;
+	u16 otp_data;
+	u16 *bootdata_temp_area;
+	u16 checksum;
+	int i;
+	const int len_each_time = 1024;
+
+	bootdata_temp_area = devm_kzalloc(dev,
+					  len_each_time + 2,
+					  GFP_KERNEL);
+	if (bootdata_temp_area == NULL) {
+		dev_err(dev, "allocate memory failed\n");
+		return -EINVAL;
+	}
+
+	checksum = ap1302_otp_flash_get_checksum(instance->otp_flash_instance);
+
+//load pll
+	bootdata_temp_area[0] = cpu_to_be16(BOOT_DATA_START_REG);
+	pll_len = ap1302_otp_flash_get_pll_section(instance->otp_flash_instance,
+					    (u8 *)(&bootdata_temp_area[1]));
+	dev_dbg(dev, "load pll data of length [%zu] into register [%x]\n",
+		pll_len, BOOT_DATA_START_REG);
+	sensor_i2c_write_bust(instance->i2c_client, (u8 *)bootdata_temp_area, pll_len + 2);
+	sensor_i2c_write_16b(instance->i2c_client, 0x6002, 2);
+	msleep(1);
+
+	//load bootdata part1
+	bootdata_temp_area[0] = cpu_to_be16(BOOT_DATA_START_REG + pll_len);
+	len = ap1302_otp_flash_read(instance->otp_flash_instance,
+			     (u8 *)(&bootdata_temp_area[1]),
+			     pll_len, len_each_time - pll_len);
+	dev_dbg(dev, "load data of length [%zu] into register [%zx]\n",
+		len, BOOT_DATA_START_REG + pll_len);
+	sensor_i2c_write_bust(instance->i2c_client, (u8 *)bootdata_temp_area, len + 2);
+	i = index = pll_len + len;
+
+	//load bootdata ronaming
+	while(len != 0) {
+		while(i < BOOT_DATA_WRITE_LEN) {
+			bootdata_temp_area[0] =
+				cpu_to_be16(BOOT_DATA_START_REG + i);
+			len = ap1302_otp_flash_read(instance->otp_flash_instance,
+					     (u8 *)(&bootdata_temp_area[1]),
+					     index, len_each_time);
+			if (len == 0) {
+				dev_dbg(dev, "length get zero\n");
+				break;
+			}
+
+			dev_dbg(dev,
+				"load ronaming data of length [%zu] into register [%x]\n",
+				len,
+				BOOT_DATA_START_REG + i);
+			sensor_i2c_write_bust(instance->i2c_client,
+					 (u8 *)bootdata_temp_area,
+					 len + 2);
+			index += len;
+			i += len_each_time;
+		}
+
+		i = 0;
+	}
+#else
 	struct device *dev = &instance->i2c_client->dev;
 	int index = 0;
 	size_t len = BOOT_DATA_WRITE_LEN;
@@ -847,7 +920,7 @@ static int sensor_load_bootdata(struct sensor *instance)
 				      len + 2);
 		index += len;
 	}
-
+#endif
 	sensor_i2c_write_16b(instance->i2c_client, 0x6002, 0xffff);
 	devm_kfree(dev, bootdata_temp_area);
 
@@ -903,16 +976,18 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 	struct sensor *instance = NULL;
 	struct device *dev = &client->dev;
 	struct v4l2_mbus_framefmt *fmt;
-	struct header_ver2 *header;
 	int data_lanes;
 	int continuous_clock;
 	int pixel_rate;
-	int i;
 	int ret;
 	int retry_f;
+#ifdef __FAKE__
+	struct header_ver2 *header;
+	int i;
+#endif
 
 	dev_info(&client->dev, "%s() device node: %s\n",
-		       __func__, client->dev.of_node->full_name);
+				__func__, client->dev.of_node->full_name);
 
 	instance = devm_kzalloc(dev, sizeof(struct sensor), GFP_KERNEL);
 	if (instance == NULL) {
@@ -922,16 +997,26 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 	instance->i2c_client = client;
 
 	instance->host_power_gpio = devm_gpiod_get(dev, "host-power",
-						   GPIOD_OUT_LOW);
+							GPIOD_OUT_LOW);
 	instance->device_power_gpio = devm_gpiod_get(dev, "device-power",
-						     GPIOD_OUT_LOW);
+							GPIOD_OUT_LOW);
 	instance->reset_gpio = devm_gpiod_get(dev, "reset", GPIOD_OUT_LOW);
 	instance->standby_gpio = devm_gpiod_get(dev, "standby", GPIOD_OUT_LOW);
 
+
+	if (IS_ERR(instance->reset_gpio))
+		dev_dbg(dev, "get reset_gpio failed\n");
+	if (IS_ERR(instance->host_power_gpio))
+		dev_dbg(dev, "get host_power_gpio failed\n");
+	if (IS_ERR(instance->device_power_gpio))
+		dev_dbg(dev, "get device_power_gpio failed\n");
+	if (IS_ERR(instance->standby_gpio))
+		dev_dbg(dev, "get standby_gpio failed\n");
+
 	if (IS_ERR(instance->reset_gpio) ||
-	    IS_ERR(instance->host_power_gpio) ||
-	    IS_ERR(instance->device_power_gpio) ||
-	    IS_ERR(instance->standby_gpio) ) {
+		IS_ERR(instance->host_power_gpio) ||
+		IS_ERR(instance->device_power_gpio) ||
+		IS_ERR(instance->standby_gpio) ) {
 		dev_err(dev, "get gpio object failed\n");
 		return -EPROBE_DEFER;
 	}
@@ -984,9 +1069,9 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 		if(IS_ERR(instance->otp_flash_instance)) {
 			dev_err(dev, "otp flash init failed\n");
 			// retry_f |= 0x04 ;
-			return -EPROBE_DEFER;
+			return -EPROBE_DEFER; //24CAM TEST
 		}
-
+#ifdef __FAKE__
 		header = instance->otp_flash_instance->header_data;
 		for(i = 0 ; i < ARRAY_SIZE(ap1302_sensor_table); i++)
 		{
@@ -995,7 +1080,7 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 		}
 		instance->selected_sensor = i;
 		dev_dbg(dev, "selected_sensor:%d, sensor_name:%s\n", i, header->product_name);
-
+#endif
 		if(sensor_load_bootdata(instance) != 0) {
 			dev_err(dev, "load bootdata failed\n");
 			retry_f |= 0x08 ;
