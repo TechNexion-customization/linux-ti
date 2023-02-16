@@ -1,0 +1,150 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * DT Overlay for CPSW9G in SGMII mode using ROVY-M2-M-SGMII with ROVY-EVM board
+ *
+ * Copyright (C) 2022 Texas Instruments Incorporated - https://www.ti.com/
+ * Copyright 2022 Technexion Ltd.
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/phy/phy.h>
+#include <dt-bindings/phy/phy-cadence.h>
+#include <dt-bindings/pinctrl/k3.h>
+
+/ {
+	fragment@102 {
+		target-path = "/";
+		__overlay__ {
+			model = "TechNexion ROVY-AM68 and EVM baseboard with flexserdes SGMII";
+			aliases {
+				ethernet1 = "/bus@100000/ethernet@c000000/ethernet-ports/port@1";
+				ethernet2 = "/bus@100000/ethernet@c000000/ethernet-ports/port@2";
+			};
+		};
+	};
+};
+
+
+&cpsw0 {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&mdio_pins_default>;
+};
+
+&cpsw0_port1 {
+	phy-mode = "sgmii";	
+	mac-address = [00 00 00 00 00 00];
+	phys = <&cpsw0_phy_gmii_sel 1>, <&serdes0_sgmii_link>;
+	phy-names = "portmode", "serdes-phy";
+	phy-handle = <&cpsw9g_phy0>;
+};
+
+&cpsw0_port2 {
+	phy-mode = "sgmii";	
+	mac-address = [00 00 00 00 00 00];
+	phys = <&cpsw0_phy_gmii_sel 2>, <&serdes0_sgmii_link>;
+	phy-names = "portmode", "serdes-phy";
+	phy-handle = <&cpsw9g_phy1>;
+};
+
+&cpsw0_port3 {
+	status = "disabled";
+};
+
+&cpsw0_port4 {
+	status = "disabled";
+};
+
+&cpsw0_port5 {
+	status = "disabled";
+};
+
+&cpsw0_port6 {
+	status = "disabled";
+};
+
+&cpsw0_port7 {
+	status = "disabled";
+};
+
+&cpsw0_port8 {
+	status = "disabled";
+};
+
+&cpsw9g_mdio {
+	bus_freq = <1000000>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_sgmii_phy_reset_pins_default>;
+	reset-gpios = <&main_gpio0 21 GPIO_ACTIVE_LOW>;
+	//reset-assert-us = <35000>;
+	//reset-deassert-us = <75000>;
+	#address-cells = <1>;
+	#size-cells = <0>;
+	//rtl821x,aldps-disable;
+	//rtl821x,clkout-disable;
+
+	cpsw9g_phy0: ethernet-phy@4 {
+		reg = <4>;
+	};
+
+	cpsw9g_phy1: ethernet-phy@5 {
+		reg = <5>;
+		//ti,rx-internal-delay = <DP83867_RGMIIDCTL_2_00_NS>;
+		//ti,fifo-depth = <DP83867_PHYCR_FIFO_DEPTH_4_B_NIB>;
+		//ti,min-output-impedance;
+	};
+};
+
+
+&cpsw9g_virt_mac {
+	status = "disabled";
+};
+
+
+&main_pmx0 {
+	mdio_pins_default: mdio-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x1bc, PIN_OUTPUT, 0) /* (V24) MDIO0_MDC */
+			J721E_IOPAD(0x1b8, PIN_INPUT, 0) /* (V26) MDIO0_MDIO */
+		>;
+	};
+
+	main_sgmii_phy_reset_pins_default: main-sgmii-phy-reset-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x58, PIN_INPUT, 7) /* (AE22) PRG1_PRU1_GPO0.GPIO0_21 */
+		>;
+	};
+};
+
+&main_r5fss0_core0 {
+	firmware-name = "pdk-ipc/ipc_echo_test_mcu2_0_release_strip.xer5f";
+};
+
+&pcie0_rc {
+	status = "disabled";
+};
+
+&serdes0 {
+	serdes0_sgmii_link: phy@1 {
+		reg = <1>;
+		cdns,num-lanes = <2>;
+		#phy-cells = <0>;
+		cdns,phy-type = <PHY_TYPE_SGMII>;
+		resets = <&serdes_wiz0 1>, <&serdes_wiz0 2>;
+	};
+/*
+	serdes0_sgmii_link: phy@1 {
+		reg = <1>;
+		cdns,num-lanes = <1>;
+		#phy-cells = <0>;
+		cdns,phy-type = <PHY_TYPE_SGMII>;
+		resets = <&serdes_wiz0 2>;
+	};
+*/
+};

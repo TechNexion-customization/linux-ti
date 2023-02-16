@@ -525,7 +525,7 @@ cpsw9g_virt_maconly: main-r5fss-cpsw9g-virt-mac1 {
 };
 
 &serdes_ln_ctrl {
-	idle-states = <J721E_SERDES0_LANE0_PCIE0_LANE0>, <J721E_SERDES0_LANE1_PCIE0_LANE1>,
+	idle-states = <J721E_SERDES0_LANE0_QSGMII_LANE1>, <J721E_SERDES0_LANE1_QSGMII_LANE2>,
 		      <J721E_SERDES1_LANE0_PCIE1_LANE0>, <J721E_SERDES1_LANE1_USB3_1>,
 		      <J721E_SERDES2_LANE0_PCIE2_LANE0>, <J721E_SERDES2_LANE1_PCIE2_LANE1>,
 		      <J721E_SERDES3_LANE0_PCIE3_LANE0>, <J721E_SERDES3_LANE1_USB3_0>,
@@ -705,12 +705,14 @@ cpsw9g_virt_maconly: main-r5fss-cpsw9g-virt-mac1 {
 		reset-gpios = <&wkup_gpio0 29 GPIO_ACTIVE_LOW>;
 		reset-assert-us = <35000>;
 		reset-deassert-us = <75000>;
+		status = "disabled";
 	};
 };
 
 &cpsw_port1 {
 	phy-mode = "rgmii-rxid";
 	phy-handle = <&phy0>;
+	status = "disabled";
 };
 
 &dss {
