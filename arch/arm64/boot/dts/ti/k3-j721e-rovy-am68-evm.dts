@@ -222,44 +222,19 @@ cpsw9g_virt_maconly: main-r5fss-cpsw9g-virt-mac1 {
 		};
 	};
 
-	transceiver1: can-phy0 {
-		compatible = "ti,tcan1043";
+	transceiver1: can-phy0 { /* SOC_CAN_A */
+		compatible = "ti,tcan1042"; /* tcan1462 */
 		#phy-cells = <0>;
 		max-bitrate = <5000000>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&mcu_mcan0_gpio_pins_default>;
-		standby-gpios = <&wkup_gpio0 54 GPIO_ACTIVE_LOW>;
-		enable-gpios = <&wkup_gpio0 0 GPIO_ACTIVE_HIGH>;
-		status = "disabled";
+		standby-gpios = <&tca9555_21 12 GPIO_ACTIVE_HIGH>;
 	};
 
-	transceiver2: can-phy1 {
-		compatible = "ti,tcan1042";
+	transceiver2: can-phy1 { /* SOC_CAN_B */
+		compatible = "ti,tcan1042"; /* tcan1462 */
 		#phy-cells = <0>;
 		max-bitrate = <5000000>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&mcu_mcan1_gpio_pins_default>;
-		standby-gpios = <&wkup_gpio0 2 GPIO_ACTIVE_HIGH>;
-		status = "disabled";
+		standby-gpios = <&tca9555_21 13 GPIO_ACTIVE_HIGH>;
 	};
-
-	transceiver3: can-phy2 {
-		compatible = "ti,tcan1043";
-		#phy-cells = <0>;
-		max-bitrate = <5000000>;
-		status = "disabled";
-	};
-
-	transceiver4: can-phy3 {
-		compatible = "ti,tcan1042";
-		#phy-cells = <0>;
-		max-bitrate = <5000000>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&main_mcan2_gpio_pins_default>;
-		standby-gpios = <&main_gpio0 127 GPIO_ACTIVE_HIGH>;
-		status = "disabled";
-	};
-
 };
 
 &main_pmx0 {
@@ -338,16 +313,52 @@ cpsw9g_virt_maconly: main-r5fss-cpsw9g-virt-mac1 {
 		>;
 	};
 
-	main_mcan2_pins_default: main-mcan2-pins-default {
+	main_mcan1_pins_default: main-mcan1-pins-default {
 		pinctrl-single,pins = <
-			J721E_IOPAD(0x01f0, PIN_INPUT, 3) /* (AC2) MCAN2_RX.GPIO0_123 */
-			J721E_IOPAD(0x01f4, PIN_OUTPUT, 3) /* (AB1) MCAN2_TX.GPIO0_124 */
+			J721E_IOPAD(0x210, PIN_INPUT, 0) /* (W3) MCAN1_RX */
+			J721E_IOPAD(0x214, PIN_OUTPUT, 0) /* (V4) MCAN1_TX */
 		>;
 	};
 
-	main_mcan2_gpio_pins_default: main-mcan2-gpio-pins-default {
+	main_mcan4_pins_default: main-mcan4-pins-default {
 		pinctrl-single,pins = <
-			J721E_IOPAD(0x200, PIN_INPUT, 7) /* (AC4) UART1_CTSn.GPIO0_127 */
+			J721E_IOPAD(0x24, PIN_INPUT, 6) /* (AJ20) PRG1_PRU0_GPO8.MCAN4_RX */
+			J721E_IOPAD(0x20, PIN_OUTPUT, 6) /* (AE20) PRG1_PRU0_GPO7.MCAN4_TX */
+		>;
+	};
+
+	main_mcan5_pins_default: main-mcan5-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x50, PIN_INPUT, 6) /* (AE21) PRG1_PRU0_GPO18.MCAN5_RX */
+			J721E_IOPAD(0x4c, PIN_OUTPUT, 6) /* (AJ21) PRG1_PRU0_GPO17.MCAN5_TX */
+		>;
+	};
+
+	main_mcan6_pins_default: main-mcan6-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x44, PIN_INPUT, 6) /* (AE24) PRG1_PRU0_GPO16.MCAN6_RX */
+			J721E_IOPAD(0x40, PIN_OUTPUT, 6) /* (AC24) PRG1_PRU0_GPO15.MCAN6_TX */
+		>;
+	};
+
+	main_mcan7_pins_default: main-mcan7-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x8c, PIN_INPUT, 6) /* (AG25) PRG1_PRU1_GPO13.MCAN7_RX */
+			J721E_IOPAD(0x88, PIN_OUTPUT, 6) /* (AH25) PRG1_PRU1_GPO12.MCAN7_TX */
+		>;
+	};
+
+	main_mcan8_pins_default: main-mcan8-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x94, PIN_INPUT, 6) /* (AJ27) PRG1_PRU1_GPO15.MCAN8_RX */
+			J721E_IOPAD(0x90, PIN_OUTPUT, 6) /* (AH26) PRG1_PRU1_GPO14.MCAN8_TX */
+		>;
+	};
+
+	main_mcan9_pins_default: main-mcan9-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0xd0, PIN_INPUT, 6) /* (AC27) PRG0_PRU0_GPO8.MCAN9_RX */
+			J721E_IOPAD(0xcc, PIN_OUTPUT, 6) /* (AC28) PRG0_PRU0_GPO7.MCAN9_TX */
 		>;
 	};
 
@@ -392,33 +403,6 @@ cpsw9g_virt_maconly: main-r5fss-cpsw9g-virt-mac1 {
 		pinctrl-single,pins = <
 			J721E_WKUP_IOPAD(0x008c, PIN_OUTPUT, 0) /* MCU_MDIO0_MDC */
 			J721E_WKUP_IOPAD(0x0088, PIN_INPUT, 0) /* MCU_MDIO0_MDIO */
-		>;
-	};
-
-	mcu_mcan0_pins_default: mcu-mcan0-pins-default {
-		pinctrl-single,pins = <
-			J721E_WKUP_IOPAD(0xac, PIN_INPUT, 0) /* (C29) MCU_MCAN0_RX */
-			J721E_WKUP_IOPAD(0xa8, PIN_OUTPUT, 0) /* (D29) MCU_MCAN0_TX */
-		>;
-	};
-
-	mcu_mcan0_gpio_pins_default: mcu-mcan0-gpio-pins-default {
-		pinctrl-single,pins = <
-			J721E_WKUP_IOPAD(0xb0, PIN_INPUT, 7) /* (F26) WKUP_GPIO0_0 */
-			J721E_WKUP_IOPAD(0x98, PIN_INPUT, 7) /* (E28) MCU_SPI0_D1.WKUP_GPIO0_54 */
-		>;
-	};
-
-	mcu_mcan1_pins_default: mcu-mcan1-pins-default {
-		pinctrl-single,pins = <
-			J721E_WKUP_IOPAD(0xc4, PIN_INPUT, 0) /* (G24) WKUP_GPIO0_5.MCU_MCAN1_RX */
-			J721E_WKUP_IOPAD(0xc0, PIN_OUTPUT, 0) /* (G25) WKUP_GPIO0_4.MCU_MCAN1_TX */
-		>;
-	};
-
-	mcu_mcan1_gpio_pins_default: mcu-mcan1-gpio-pins-default {
-		pinctrl-single,pins = <
-			J721E_WKUP_IOPAD(0xb8, PIN_INPUT, 7) /* (F28) WKUP_GPIO0_2 */
 		>;
 	};
 };
@@ -872,34 +856,28 @@ cpsw9g_virt_maconly: main-r5fss-cpsw9g-virt-mac1 {
 };
 
 &mcu_mcan0 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&mcu_mcan0_pins_default>;
-	phys = <&transceiver1>;
 	status = "disabled";
 };
 
 &mcu_mcan1 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&mcu_mcan1_pins_default>;
-	phys = <&transceiver2>;
 	status = "disabled";
 };
 
-&main_mcan0 {
+/* SOC_CAN_A */
+&main_mcan0 {	
 	pinctrl-names = "default";
 	pinctrl-0 = <&main_mcan0_pins_default>;
-	phys = <&transceiver3>;
-	status = "disabled";
+	phys = <&transceiver1>;
 };
 
+/* SOC_CAN_B */
 &main_mcan1 {
-	status = "disabled";
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_mcan1_pins_default>;
+	phys = <&transceiver2>;
 };
 
 &main_mcan2 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&main_mcan2_pins_default>;
-	phys = <&transceiver4>;
 	status = "disabled";
 };
 
@@ -907,28 +885,40 @@ cpsw9g_virt_maconly: main-r5fss-cpsw9g-virt-mac1 {
 	status = "disabled";
 };
 
+/* SOC_CAN_C */
 &main_mcan4 {
-	status = "disabled";
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_mcan4_pins_default>;
 };
 
+/* SOC_CAN_D */
 &main_mcan5 {
-	status = "disabled";
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_mcan5_pins_default>;
 };
 
+/* SOC_CAN_E */
 &main_mcan6 {
-	status = "disabled";
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_mcan6_pins_default>;
 };
 
+/* SOC_CAN_F */
 &main_mcan7 {
-	status = "disabled";
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_mcan7_pins_default>;
 };
 
+/* SOC_CAN_G */
 &main_mcan8 {
-	status = "disabled";
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_mcan8_pins_default>;
 };
 
+/* SOC_CAN_H */
 &main_mcan9 {
-	status = "disabled";
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_mcan9_pins_default>;
 };
 
 &main_mcan10 {
