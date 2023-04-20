@@ -376,6 +376,19 @@
 			J721E_IOPAD(0x5c, PIN_INPUT, 7) /* (AG23) PRG1_PRU1_GPO1.GPIO0_22 */
 		>;
 	};
+
+	main_pcie_keyb_rst_pins_default: main-pcie-keyb-rst-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0xb0, PIN_OUTPUT, 7) /* (AF28) PRG0_PRU0_GPO0.GPIO0_43 */
+			J721E_IOPAD(0xb4, PIN_INPUT, 7) /* (AE28) PRG0_PRU0_GPO1.GPIO0_44 */
+		>;
+	};
+
+	main_pcie_keye_rst_pins_default: main-pcie-keye-rst-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0xb8, PIN_OUTPUT, 7) /* (AE27) PRG0_PRU0_GPO2.GPIO0_45 */
+		>;
+	};
 };
 
 &wkup_pmx0 {
@@ -524,6 +537,15 @@
 // };
 
 &serdes3 {
+	serdes3_pcie_link: phy@0 {
+		reg = <0>;
+		cdns,num-lanes = <1>;
+		#phy-cells = <0>;
+		cdns,phy-type = <PHY_TYPE_PCIE>;
+		resets = <&serdes_wiz3 1>;
+		status = "disabled";
+	};
+
 	serdes3_usb_link: phy@1 {
 		reg = <1>;
 		cdns,num-lanes = <1>;
@@ -533,81 +555,9 @@
 	};
 };
 
-&usbss0 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&main_usbss0_pins_default>;
-	ti,vbus-divider;
-};
-
-&usb0 {
-	dr_mode = "otg";
-	maximum-speed = "super-speed";
-	phys = <&serdes3_usb_link>;
-	phy-names = "cdns3,usb3-phy";
-	power-active-low;
-	vbus-supply = <&reg_usb_otg_vbus>;
-
-	ports {
-		#address-cells = <1>;
-		#size-cells = <0>;
-
-		port@0 {
-			reg = <0>;
-			otg1_out_ep: endpoint {
-				remote-endpoint = <&hd3ss3220_in_ep>;
-			};
-		};
-
-		port@1 {
-			reg = <1>;
-			otg1_in_ep: endpoint {
-				remote-endpoint = <&hd3ss3220_out_ep>;
-			};
-		};
-	};
-};
-
-&usb1 {
-	dr_mode = "host";
-	maximum-speed = "super-speed";
-	phys = <&serdes1_usb_link>;
-	phy-names = "cdns3,usb3-phy";
-};
-
 &tscadc0 {
 	adc {
 		ti,adc-channels = <0 1 2 3 4 5 6 7>;
-	};
-};
-
-&main_i2c0 { /* I2C_A */
-	typec_hd3ss3220: hd3ss3220@47 {
-		compatible = "ti,hd3ss3220";
-		interrupt-parent = <&main_gpio0>;
-		interrupts = <71 IRQ_TYPE_LEVEL_LOW>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&typec_hd3ss3220_irq_pins_default>;
-		vbus-supply = <&reg_usb_otg_vbus>;
-		reg = <0x47>;
-
-		ports {
-			#address-cells = <1>;
-			#size-cells = <0>;
-
-			port@0 {
-				reg = <0>;
-				hd3ss3220_in_ep: endpoint {
-					remote-endpoint = <&otg1_out_ep>;
-				};
-			};
-
-			port@1 {
-				reg = <1>;
-				hd3ss3220_out_ep: endpoint {
-					remote-endpoint = <&otg1_in_ep>;
-				};
-			};
-		};
 	};
 };
 
@@ -761,9 +711,6 @@
 };
 
 &serdes1 {
-	//assigned-clocks = <&serdes1 CDNS_SIERRA_PLL_CMNLC>;
-	//assigned-clock-parents = <&wiz1_pll1_refclk>;
-
 	serdes1_pcie_link: phy@0 {
 		reg = <0>;
 		cdns,num-lanes = <1>;
@@ -805,20 +752,6 @@
 	num-lanes = <2>;
 };
 
-&pcie1_rc {
-	phys = <&serdes1_pcie_link>;
-	phy-names = "pcie-phy";
-	num-lanes = <1>;
-	status="disabled";
-};
-
-&pcie2_rc {
-	phys = <&serdes2_pcie_link>;
-	phy-names = "pcie-phy";
-	num-lanes = <2>;
-	status="disabled";
-};
-
 &pcie0_ep {
 	phys = <&serdes0_pcie_link>;
 	phy-names = "pcie-phy";
@@ -826,11 +759,25 @@
 	status = "disabled";
 };
 
+&pcie1_rc {
+	phys = <&serdes1_pcie_link>;
+	phy-names = "pcie-phy";
+	num-lanes = <1>;
+	status="disabled";
+};
+
 &pcie1_ep {
 	phys = <&serdes1_pcie_link>;
 	phy-names = "pcie-phy";
 	num-lanes = <1>;
 	status = "disabled";
+};
+
+&pcie2_rc {
+	phys = <&serdes2_pcie_link>;
+	phy-names = "pcie-phy";
+	num-lanes = <2>;
+	status="disabled";
 };
 
 &pcie2_ep {
@@ -841,10 +788,16 @@
 };
 
 &pcie3_rc {
+	phys = <&serdes3_pcie_link>;
+	phy-names = "pcie-phy";
+	num-lanes = <1>;
 	status = "disabled";
 };
 
 &pcie3_ep {
+	phys = <&serdes3_pcie_link>;
+	phy-names = "pcie-phy";
+	num-lanes = <1>;
 	status = "disabled";
 };
 
