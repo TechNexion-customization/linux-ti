@@ -1,0 +1,79 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright 2022 Technexion Ltd.
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/pinctrl/k3.h>
+#include <dt-bindings/mux/ti-serdes.h>
+#include <dt-bindings/phy/phy.h>
+
+/ {
+	fragment@101 {
+		target-path = "/";
+
+		__overlay__ {
+			model = "TechNexion ROVY-AM68 and EVM baseboard with PCIE1(Key B) and USB0(USB 3.0 host)";
+		};
+	};
+};
+
+&serdes_ln_ctrl {
+	idle-states = <J721E_SERDES0_LANE0_PCIE0_LANE0>, <J721E_SERDES0_LANE1_PCIE0_LANE1>,
+		/* SERDES1 - LANE0: PCIE, LANE1: disable */
+		/* SERDES1 LANE1 can't be disabled, just can be configured as PCIE */
+		/* But only LANE0 is actived in PCIE */
+		<J721E_SERDES1_LANE0_PCIE1_LANE0>, <J721E_SERDES1_LANE1_PCIE1_LANE1>,
+		<J721E_SERDES2_LANE0_PCIE2_LANE0>, <J721E_SERDES2_LANE1_PCIE2_LANE1>,
+		/* SERDES3 - LANE0: disable, LANE1: enable USB */
+		<J721E_SERDES3_LANE0_IP1_UNUSED>, <J721E_SERDES3_LANE1_USB3_0>,
+		<J721E_SERDES4_LANE0_QSGMII_LANE5>, <J721E_SERDES4_LANE1_QSGMII_LANE6>,
+		<J721E_SERDES4_LANE2_QSGMII_LANE7>, <J721E_SERDES4_LANE3_QSGMII_LANE8>;
+};
+
+&serdes1 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	serdes1_pcie_link: phy@0 {
+		reg = <0>;
+		cdns,num-lanes = <1>;
+		#phy-cells = <0>;
+		cdns,phy-type = <PHY_TYPE_PCIE>;
+		resets = <&serdes_wiz1 1>;
+		status="okay";
+	};
+
+	serdes1_usb_link: phy@1 {
+		status="disabled";
+	};
+};
+
+&pcie1_rc {
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_pcie_keyb_rst_pins_default>;
+	reset-gpios = <&main_gpio0 43 GPIO_ACTIVE_HIGH>;
+	#phy-cells = <0>;
+	phys = <&serdes1_pcie_link>;
+	phy-names = "pcie-phy";
+	num-lanes = <1>;
+	status="okay";
+};
+
+&usb0 {
+	dr_mode = "host";
+	maximum-speed = "super-speed";
+	phys = <&serdes3_usb_link>;
+	phy-names = "cdns3,usb3-phy";
+};
+
+&usb1 {
+	status="disabled";
+};
