@@ -516,6 +516,24 @@
 	};
 };
 
+&main_i2c5 { /* I2C_E */
+	clock-frequency = <400000>;
+
+	/* Power monitor for VSYS_3V3 */
+	sensor_3v3:ina219_3v3@45 {
+		compatible = "ti,ina219";
+		reg = <0x45>;
+		shunt-resistor = <2000>; /* .002 Ohm resistor = 2000 uOhms*/
+	};
+
+	/* Power monitor for VCC_12V_OUT */
+	sensor_12v:ina219_12v@40 {
+		compatible = "ti,ina219";
+		reg = <0x40>;
+		shunt-resistor = <2000>; /* .002 Ohm resistor = 2000 uOhms*/
+	};
+};
+
 &main_i2c6 { /* I2C_F */
 	clock-frequency = <400000>;
 	tlv320aic3104: tlv320aic3104@18 {
