@@ -39,6 +39,7 @@ dtb-$(CONFIG_ARCH_K3) += k3-j721e-rovy-am68-evm-4xsgmii.dtbo
 dtb-$(CONFIG_ARCH_K3) += k3-j721e-rovy-am68-evm-pcie1-usb0.dtbo
 dtb-$(CONFIG_ARCH_K3) += k3-j721e-rovy-am68-evm-pcie3-usb1.dtbo
 dtb-$(CONFIG_ARCH_K3) += k3-j721e-rovy-am68-evm-usb0-usb1.dtbo
+dtb-$(CONFIG_ARCH_K3) += k3-j721e-rovy-am68-evm-mcu-uarts.dtbo
 dtb-$(CONFIG_ARCH_K3) += k3-j721e-rovy-am68-evm-vizionpanel-vl10112880.dtbo
 dtb-$(CONFIG_ARCH_K3) += k3-j721e-rovy-am68-evm-vizionlink-tevi-ap1302-0-0.dtbo
 dtb-$(CONFIG_ARCH_K3) += k3-j721e-rovy-am68-evm-vizionlink-tevi-ap1302-0-1.dtbo
