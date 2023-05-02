@@ -15,6 +15,7 @@
 	fragment@5 {
 		target-path = "/";
 		__overlay__ {
+			model = "TechNexion ROVY-AM68 and EVM baseboard with mcu_uart0 and wkup_uart0";
 			aliases {
 				serial0 = "/bus@100000/bus@28380000/serial@42300000";
 				serial1 = "/bus@100000/bus@28380000/serial@40a00000";
