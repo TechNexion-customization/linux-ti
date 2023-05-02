@@ -197,6 +197,42 @@
 		>;
 	};
 
+	main_uart0_pins_default: main-uart0-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x1f0, PIN_INPUT, 0) /* (AC2) UART0_CTSn */
+			J721E_IOPAD(0x1f4, PIN_OUTPUT, 0) /* (AB1) UART0_RTSn */
+			J721E_IOPAD(0x1e8, PIN_INPUT, 0) /* (AB2) UART0_RXD */
+			J721E_IOPAD(0x1ec, PIN_OUTPUT, 0) /* (AB3) UART0_TXD */
+		>;
+	};
+
+	main_uart1_pins_default: main-uart1-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x200, PIN_INPUT, 0) /* (AC4) UART1_CTSn */
+			J721E_IOPAD(0x204, PIN_OUTPUT, 0) /* (AD5) UART1_RTSn */
+			J721E_IOPAD(0x1f8, PIN_INPUT, 0) /* (AA4) UART1_RXD */
+			J721E_IOPAD(0x1fc, PIN_OUTPUT, 0) /* (AB4) UART1_TXD */
+		>;
+	};
+
+	main_uart2_pins_default: main-uart2-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x138, PIN_INPUT, 14) /* (AE25) PRG0_PRU1_GPO14.UART2_CTSn */
+			J721E_IOPAD(0x13c, PIN_OUTPUT, 14) /* (AF29) PRG0_PRU1_GPO15.UART2_RTSn */
+			J721E_IOPAD(0x148, PIN_INPUT, 14) /* (AA26) PRG0_PRU1_GPO18.UART2_RXD */
+			J721E_IOPAD(0x11c, PIN_OUTPUT, 14) /* (AA24) PRG0_PRU1_GPO7.UART2_TXD */
+		>;
+	};
+
+	main_uart4_pins_default: main-uart4-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x100, PIN_INPUT, 8) /* (AE29) PRG0_PRU1_GPO0.UART4_CTSn */
+			J721E_IOPAD(0x104, PIN_OUTPUT, 8) /* (AD28) PRG0_PRU1_GPO1.UART4_RTSn */
+			J721E_IOPAD(0xe8, PIN_INPUT, 8) /* (AG28) PRG0_PRU0_GPO14.UART4_RXD */
+			J721E_IOPAD(0xec, PIN_OUTPUT, 8) /* (AG27) PRG0_PRU0_GPO15.UART4_TXD */
+		>;
+	};
+
 	mcasp6_pins_default: mcasp6-pins-default { /* AUD_A */
 		pinctrl-single,pins = <
 			J721E_IOPAD(0x4, PIN_INPUT, 12) /* (AC23) PRG1_PRU0_GPO0.MCASP6_ACLKX */
@@ -449,6 +485,58 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&main_i2c6_pins_default>;
 	clock-frequency = <400000>;
+};
+
+&main_uart0 { /* UART_A */
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_uart0_pins_default>;
+	/* Shared with ATF on this platform */
+	power-domains = <&k3_pds 146 TI_SCI_PD_SHARED>;
+};
+
+&main_uart1 { /* UART_B */
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_uart1_pins_default>;
+};
+
+&main_uart2 { /* UART_C */
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_uart2_pins_default>;
+};
+
+&main_uart3 {
+	/* UART not brought out */
+	status = "disabled";
+};
+
+&main_uart4 { /* UART_D */
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_uart4_pins_default>;
+};
+
+&main_uart5 {
+	/* UART not brought out */
+	status = "disabled";
+};
+
+&main_uart6 {
+	/* UART not brought out */
+	status = "disabled";
+};
+
+&main_uart7 {
+	/* UART not brought out */
+	status = "disabled";
+};
+
+&main_uart8 {
+	/* UART not brought out */
+	status = "disabled";
+};
+
+&main_uart9 {
+	/* UART not brought out */
+	status = "disabled";
 };
 
 &mcasp0 { /* Unused */
