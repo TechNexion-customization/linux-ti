@@ -197,6 +197,26 @@
 		>;
 	};
 
+	main_spi1_pins_default: main-spi1-pins-default { /* SPI_A */
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x1dc, PIN_OUTPUT, 0) /* (Y1) SPI1_CLK */
+			J721E_IOPAD(0x1d4, PIN_OUTPUT, 0) /* (Y3) SPI1_CS0 */
+			J721E_IOPAD(0x1d8, PIN_OUTPUT, 0) /* (W4) SPI1_CS1 */
+			J721E_IOPAD(0x1e0, PIN_OUTPUT, 0) /* (Y5) SPI1_D0 */
+			J721E_IOPAD(0x1e4, PIN_INPUT, 0) /* (Y2) SPI1_D1 */
+		>;
+	};
+
+	main_spi5_pins_default: main-spi5-pins-default { /* SPI_B */
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x1a0, PIN_OUTPUT, 3) /* (W29) RGMII6_TXC.SPI5_CLK */
+			J721E_IOPAD(0x19c, PIN_INPUT, 3) /* (W27) RGMII6_TD0.SPI5_CS0 */
+			J721E_IOPAD(0x1b4, PIN_OUTPUT, 3) /* (W25) RGMII6_RD0.SPI5_CS1 */
+			J721E_IOPAD(0x198, PIN_OUTPUT, 3) /* (V25) RGMII6_TD1.SPI5_D0 */
+			J721E_IOPAD(0x1b0, PIN_INPUT, 3) /* (W24) RGMII6_RD1.SPI5_D1 */
+		>;
+	};
+
 	main_uart0_pins_default: main-uart0-pins-default {
 		pinctrl-single,pins = <
 			J721E_IOPAD(0x1f0, PIN_INPUT, 0) /* (AC2) UART0_CTSn */
@@ -485,6 +505,22 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&main_i2c6_pins_default>;
 	clock-frequency = <400000>;
+};
+
+&main_spi1 { /* SPI_A */
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_spi1_pins_default>;
+	ti,pindir-d0-out-d1-in = <1>;    /* MOSI on D0, MISO on D1 */
+	ti,spi-num-cs = <2>;
+	cs-gpios = <0>, <0>;    /* 2 Native CS0,1 */
+};
+
+&main_spi5 { /* SPI_B */
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_spi5_pins_default>;
+	ti,pindir-d0-out-d1-in = <1>;    /* MOSI on D0, MISO on D1 */
+	ti,spi-num-cs = <2>;
+	cs-gpios = <0>, <0>;    /* 2 Native CS0,1 */
 };
 
 &main_uart0 { /* UART_A */

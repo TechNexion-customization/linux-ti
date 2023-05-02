@@ -577,6 +577,21 @@
 	};
 };
 
+&main_spi1 { /* SPI_A */
+	spidev1: spi@0 {
+		reg = <0>;
+		compatible = "rohm,dh2228fv";
+		spi-max-frequency = <500000>;
+	};
+};
+
+&main_spi5 { /* SPI_B */
+	spidev2: spi@0 {
+		reg = <0>;
+		compatible = "rohm,dh2228fv";
+		spi-max-frequency = <500000>;
+	};
+};
 
 &k3_clks {
 	/* Confiure AUDIO_EXT_REFCLK2 pin as output */
