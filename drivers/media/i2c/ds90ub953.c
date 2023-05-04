@@ -928,15 +928,14 @@ static int ub953_general_cfg(struct ub953_data *priv)
 	struct device *dev = &priv->client->dev;
 	u32 num_data_lanes;
 	bool clock_continuous;
-	int ret;
 
-	ret = of_property_count_u32_elems(priv->rx_ep_np, "data-lanes");
-	if (ret < 1 || ret > UB953_MAX_DATA_LANES) {
-		dev_err(dev, "DT: invalid data-lanes (%d), only 1-4 lanes supported\n", ret);
-		return ret;
-	} else {
-		num_data_lanes = ret;
+	if (of_property_read_u32(priv->rx_ep_np, "data-lanes", &num_data_lanes)) {
+		if (num_data_lanes < 1 || num_data_lanes > UB953_MAX_DATA_LANES){
+			dev_err(dev, "DT: invalid data-lanes (%d), only 1-4 lanes supported\n", num_data_lanes);
+		}
+		return 0;
 	}
+	dev_dbg(dev, "DT: data-lanes (%d)\n", num_data_lanes);
 
 	clock_continuous = !of_property_read_bool(priv->rx_ep_np, "clock-noncontinuous");
 
