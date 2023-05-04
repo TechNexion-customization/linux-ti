@@ -29,10 +29,12 @@
 
 			serializer: remote-chip {
 				compatible = "ti,ds90ub953-q1";
+				clocks = <&ds90ub960_0>;
 
 				gpio-controller;
 				#gpio-cells = <2>;
 
+				#clock-cells = <0>;
 				ports {
 					#address-cells = <1>;
 					#size-cells = <0>;
@@ -40,7 +42,9 @@
 					port@0 {
 						reg = <0>;
 						ub953_in: endpoint@0 {
-						remote-endpoint = <&sensor_out>;
+							remote-endpoint = <&sensor_out>;
+							data-lanes = <2>;
+							clock-noncontinuous;
 						};
 					};
 
@@ -59,7 +63,6 @@
 &ds90ub960_atr_0 {
 	#address-cells = <1>;
 	#size-cells = <0>;
-	status = "okay";
 
 	i2c@1 {
 		reg = <1>;
@@ -67,7 +70,7 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 
-		vizionlink_tevi_ap1302_otp_0: vizionlink_tevi_ap1302_otp_1@54 {
+		vizionlink_tevi_ap1302_otp_0: vizionlink_tevi_ap1302_otp_0@54 {
 			compatible = "atmel,24c1024";
 			reg = <0x54>;
 			pagesize = <128>;
@@ -75,7 +78,7 @@
 
 		};
 
-		vizionlink_pca9554_0: vizionlink_pca9554_1@25 {
+		vizionlink_pca9554_0: vizionlink_pca9554_0@25 {
 			compatible = "nxp,pca9554";
 			reg = <0x25>;
 			gpio-controller;

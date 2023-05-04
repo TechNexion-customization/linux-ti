@@ -29,10 +29,12 @@
 
 			serializer: remote-chip {
 				compatible = "ti,ds90ub953-q1";
+				clocks = <&ds90ub960_1>;
 
 				gpio-controller;
 				#gpio-cells = <2>;
 
+				#clock-cells = <0>;
 				ports {
 					#address-cells = <1>;
 					#size-cells = <0>;
@@ -40,7 +42,9 @@
 					port@0 {
 						reg = <0>;
 						ub953_in: endpoint@0 {
-						remote-endpoint = <&sensor_out>;
+							remote-endpoint = <&sensor_out>;
+							data-lanes = <2>;
+							clock-noncontinuous;
 						};
 					};
 
@@ -59,7 +63,6 @@
 &ds90ub960_atr_1 {
 	#address-cells = <1>;
 	#size-cells = <0>;
-	status = "okay";
 
 	i2c@2 {
 		reg = <2>;

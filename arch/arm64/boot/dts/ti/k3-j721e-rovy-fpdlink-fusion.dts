@@ -43,7 +43,7 @@
 		#gpio-cells = <2>;
 		status = "disabled";
 	};
-	deser@30 {
+	ds90ub960_0: deser@30 {
 		compatible = "ti,ds90ub960-q1";
 
 		reg-names = "main",
@@ -57,9 +57,9 @@
 
 		i2c-alias-pool = /bits/ 16 <0x5a 0x5b 0x5c 0x5d 0x5e 0x5f 0x60 0x61 0x62 0x63 0x64 0x65 0x66 0x67 0x68 0x69>;
 
-		powerdown-gpios = <&tca9555_22 0 GPIO_ACTIVE_HIGH>;
-
 		data-rate = <1600000000>;
+
+		#clock-cells = <0>;
 
 		status = "okay";
 
@@ -99,7 +99,7 @@
 		#gpio-cells = <2>;
 		status = "disabled";
 	};
-	deser@30 {
+	ds90ub960_1: deser@30 {
 		compatible = "ti,ds90ub960-q1";
 
 		reg-names = "main",
@@ -114,9 +114,9 @@
 		i2c-alias-pool = /bits/ 16 <0x5a 0x5b 0x5c 0x5d 0x5e 0x5f 0x60 0x61 0x62 0x63 0x64 0x65 0x66 0x67 0x68 0x69>;
 		// i2c-alias-pool = /bits/ 8 <0x5a 0x5b 0x5c 0x5d 0x5e 0x5f 0x60 0x61>;
 
-		powerdown-gpios = <&tca9555_22 1 GPIO_ACTIVE_HIGH>;
-
 		data-rate = <1600000000>;
+
+		#clock-cells = <0>;
 
 		status = "okay";
 
