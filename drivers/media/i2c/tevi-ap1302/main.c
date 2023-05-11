@@ -1,3 +1,5 @@
+
+// #define DEBUG
 #include <linux/module.h>
 #include <linux/delay.h>
 #include <linux/kthread.h>
@@ -403,7 +405,7 @@ static int ops_get_frame_desc(struct v4l2_subdev *sd, unsigned int pad,
 	fd->entry[fd->num_entries].flags = V4L2_MBUS_FRAME_DESC_FL_LEN_MAX;
 	fd->entry[fd->num_entries].length = fmt->width * fmt->height * bpp / 8;
 	fd->entry[fd->num_entries].pixelcode = fmt->code;
-	fd->entry[fd->num_entries].bus.csi2.vc = 1;
+	fd->entry[fd->num_entries].bus.csi2.vc = 0;
 	fd->entry[fd->num_entries].bus.csi2.dt = 0x1e; /* SRGB */
 
 	fd->num_entries++;
@@ -1073,7 +1075,7 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 		if(IS_ERR(instance->otp_flash_instance)) {
 			dev_err(dev, "otp flash init failed\n");
 			// retry_f |= 0x04 ;
-			return -EPROBE_DEFER; //24CAM TEST
+			return -EINVAL;
 		}
 #ifdef __FAKE__
 		header = instance->otp_flash_instance->header_data;
