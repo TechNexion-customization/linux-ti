@@ -1,12 +1,63 @@
+// #define DEBUG
 #include <linux/i2c.h>
 #include "otp_flash.h"
-#define DEBUG
 #ifndef __FAKE__
 #include "bootdata.h"
+#include <linux/nvmem-consumer.h>
 
 struct otp_flash *ap1302_otp_flash_init(struct device *dev)
 {
-	return NULL;
+	// return NULL;
+	struct otp_flash *instance;
+	u8 __header_ver;
+	struct header_ver2 *header;
+
+	instance = devm_kzalloc(dev, sizeof(struct otp_flash), GFP_KERNEL);
+	if (instance == NULL) {
+		dev_err(dev, "allocate memory failed\n");
+		return ERR_PTR(-EINVAL);
+	}
+	instance->dev = dev;
+
+	instance->nvmem = devm_nvmem_device_get(dev, "calib-data");
+	if (IS_ERR(instance->nvmem)) {
+		dev_err(dev, "find not otp flash setting\n");
+		goto fail1;
+	}
+
+	nvmem_device_read(instance->nvmem, 0, 1, &__header_ver);
+
+	if (__header_ver == 2) {
+		instance->header_data =
+			devm_kzalloc(dev, sizeof(struct header_ver2),
+				     GFP_KERNEL);
+
+		nvmem_device_read(instance->nvmem,
+				  0,
+				  sizeof(struct header_ver2),
+				  instance->header_data);
+
+		header = instance->header_data;
+		dev_info(dev, "Product:%s, Version:%d. Lens:%s, Version:%d\n",
+			 header->product_name,
+			 header->product_version,
+			 header->lens_name,
+			 header->lens_version);
+
+		dev_dbg(dev, "content ver: %d, content checksum: %x\n",
+			header->content_version, header->content_checksum);
+		dev_dbg(dev, "content length: %d, pll bootdata length: %d\n",
+			header->content_len, header->pll_bootdata_len);
+
+		return instance;
+	} else {
+		dev_err(dev, "can't recognize header version number '0x%X'\n",
+			__header_ver);
+	}
+
+fail1:
+	devm_kfree(dev, instance);
+	return ERR_PTR(-EINVAL);
 }
 
 u16 ap1302_otp_flash_get_checksum(struct otp_flash *instance)
