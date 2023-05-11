@@ -20,6 +20,12 @@
 			J721E_IOPAD(0x10c, PIN_OUTPUT, 7) /* (AC25) PRG0_PRU1_GPO3.GPIO0_66 */
 		>;
 	};
+	main_rovy_cam1_pins_default: main-rovy-cam1-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x124, PIN_OUTPUT, 7) /* (Y24) PRG0_PRU1_GPO9.GPIO0_72 */
+			J721E_IOPAD(0x128, PIN_OUTPUT, 7) /* (AA25) PRG0_PRU1_GPO10.GPIO0_73 */
+		>;
+	};
 };
 
 &main_i2c2 {
@@ -41,7 +47,7 @@
 		status = "okay";
 	};
 
-	tevi_ap1302_otp_0: tevi_ap1302_otpi_0@54 {
+	tevi_ap1302_otp_0: tevi_ap1302_otp_0@54 {
 		compatible = "atmel,24c1024";
 		reg = <0x54>;
 		pagesize = <128>;
@@ -63,8 +69,8 @@
 
 		nvmem = <&tevi_ap1302_otp_0>;
 		nvmem-names = "calib-data";
-		pixel-rate = <400000000>; /* 61.43MHz */
-		// pixel-rate = <614304000>; /* 184.29MHz */
+		// pixel-rate = <61430400>; /* 61.43MHz */
+		pixel-rate = <61440000>; /* 61.43MHz */
 		data-lanes = <2>;
 		continuous-clock = <0>;
 		status = "okay";
@@ -82,6 +88,57 @@
 	};
 };
 
+&main_i2c0 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	pca9554_1: pca9554_1@25 {
+		compatible = "nxp,pca9554";
+		reg = <0x25>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		status = "okay";
+	};
+
+	tevi_ap1302_otp_1: tevi_ap1302_otp_1@54 {
+		compatible = "atmel,24c1024";
+		reg = <0x54>;
+		pagesize = <128>;
+		status = "okay";
+	};
+
+	ap1302_1: ap1302_1@3d {
+		compatible = "tn,tevi-ap1302";
+		reg = <0x3d>;
+
+		pinctrl-names = "default";
+		pinctrl-0 = <&main_rovy_cam1_pins_default>;
+
+		host-power-gpios = <&main_gpio0 73 GPIO_ACTIVE_HIGH>;	//CSI0_PWDN_GPIO0_66
+		reset-gpios = <&main_gpio0 72 GPIO_ACTIVE_HIGH>;	//CSI0_RST_N_GPIO0_65
+		device-power-gpios = <&pca9555_0 1 GPIO_ACTIVE_HIGH>;
+		standby-gpios = <&pca9554_1 2 GPIO_ACTIVE_HIGH>;
+
+		nvmem = <&tevi_ap1302_otp_1>;
+		nvmem-names = "calib-data";
+		pixel-rate = <61440000>; /* 61.43MHz */
+		data-lanes = <2>;
+		continuous-clock = <0>;
+		status = "okay";
+
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port {
+			csi2_cam1: endpoint {
+				remote-endpoint = <&csi2rx1_in_sensor>;
+				clock-lanes = <0>;
+				data-lanes = <1 2 3 4>;
+			};
+		};
+	};
+};
+
 &csi0_port0 {
 	status = "okay";
 	csi2rx0_in_sensor: endpoint {
@@ -92,3 +149,12 @@
 	};
 };
 
+&csi1_port0 {
+	status = "okay";
+	csi2rx1_in_sensor: endpoint {
+		remote-endpoint = <&csi2_cam1>;
+		bus-type = <4>; /* CSI2 DPHY. */
+		clock-lanes = <0>;
+		data-lanes = <1 2 3 4>;
+	};
+};
