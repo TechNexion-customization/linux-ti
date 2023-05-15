@@ -89,11 +89,11 @@
 
 &cpsw9g_mdio {
 	bus_freq = <1000000>;
-	pinctrl-names = "default";
-	pinctrl-0 = <&main_sgmii_phy_reset_pins_default>;
-	reset-gpios = <&main_gpio0 75 GPIO_ACTIVE_LOW>;
-	reset-assert-us = <35000>;
-	reset-deassert-us = <75000>;
+	//pinctrl-names = "default";
+	//pinctrl-0 = <&main_sgmii_phy_reset_pins_default>;
+	//reset-gpios = <&main_gpio0 75 GPIO_ACTIVE_LOW>;
+	//reset-assert-us = <35000>;
+	//reset-deassert-us = <75000>;
 	#address-cells = <1>;
 	#size-cells = <0>;
 
