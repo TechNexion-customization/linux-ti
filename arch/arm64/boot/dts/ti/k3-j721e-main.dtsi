@@ -1082,6 +1082,14 @@
 						 <&k3_clks 297 9>;
 			#address-cells = <1>;
 			#size-cells = <0>;
+
+			serdes4_sgmii_link: phy@0 {
+				reg = <0>;
+				resets = <&serdes_wiz4 1>, <&serdes_wiz4  2>, <&serdes_wiz4 3>, <&serdes_wiz4 4>;
+				cdns,phy-type = <PHY_TYPE_SGMII>;
+				cdns,num-lanes = <4>;
+				#phy-cells = <0>;
+			};
 		};
 	};
 
@@ -1611,14 +1619,15 @@
 
 		clocks = <&k3_clks 151 36>;
 
-		phys = <&torrent_phy_dp>;
-		phy-names = "dpphy";
+//		phys = <&torrent_phy_dp>;
+//		phy-names = "dpphy";
 
 		interrupt-parent = <&gic500>;
 		interrupts = <GIC_SPI 614 IRQ_TYPE_LEVEL_HIGH>;
 
 		power-domains = <&k3_pds 151 TI_SCI_PD_EXCLUSIVE>;
 
+		status = "disabled";
 		dp0_ports: ports {
 			#address-cells = <1>;
 			#size-cells = <0>;
