@@ -7,6 +7,7 @@
 #include <dt-bindings/phy/phy.h>
 #include <dt-bindings/mux/mux.h>
 #include <dt-bindings/mux/ti-serdes.h>
+#include <dt-bindings/phy/phy-ti.h>
 
 / {
 	cmn_refclk: clock-cmnrefclk {
@@ -1054,45 +1055,10 @@
 		clock-names = "fck", "core_ref_clk", "ext_ref_clk";
 		assigned-clocks = <&k3_clks 297 9>;
 		assigned-clock-parents = <&k3_clks 297 10>;
-		assigned-clock-rates = <19200000>;
 		num-lanes = <4>;
 		#reset-cells = <1>;
-		ranges = <0x5050000 0x0 0x5050000 0x10000>,
-			<0xa030a00 0x0 0xa030a00 0x40>;
-
-		wiz4_pll0_refclk: pll0-refclk {
-			clocks = <&k3_clks 297 9>, <&cmn_refclk>;
-			clock-output-names = "wiz4_pll0_refclk";
-			#clock-cells = <0>;
-			assigned-clocks = <&wiz4_pll0_refclk>;
-			assigned-clock-parents = <&k3_clks 297 9>;
-		};
-
-		wiz4_pll1_refclk: pll1-refclk {
-			clocks = <&k3_clks 297 9>, <&cmn_refclk>;
-			clock-output-names = "wiz4_pll1_refclk";
-			#clock-cells = <0>;
-			assigned-clocks = <&wiz4_pll1_refclk>;
-			assigned-clock-parents = <&k3_clks 297 9>;
-		};
-
-		wiz4_refclk_dig: refclk-dig {
-			clocks = <&k3_clks 297 9>, <&cmn_refclk>;
-			clock-output-names = "wiz4_refclk_dig";
-			#clock-cells = <0>;
-			assigned-clocks = <&wiz4_refclk_dig>;
-			assigned-clock-parents = <&k3_clks 297 9>;
-		};
-
-		wiz4_cmn_refclk_dig_div: cmn-refclk-dig-div {
-			clocks = <&wiz4_refclk_dig>;
-			#clock-cells = <0>;
-		};
-
-		wiz4_cmn_refclk1_dig_div: cmn-refclk1-dig-div {
-			clocks = <&wiz4_pll1_refclk>;
-			#clock-cells = <0>;
-		};
+		#clock-cells = <1>;
+		ranges = <0x5050000 0x0 0x5050000 0x10000>;
 
 		serdes4: serdes@5050000 {
 			/*
@@ -1100,24 +1066,22 @@
 			 * needs to manage those.
 			 */
 			compatible = "ti,j721e-serdes-10g";
-			reg = <0x5050000 0x10000>,
-			      <0xa030a00 0x40>; /* DPTX PHY */
-			reg-names = "torrent_phy", "dptx_phy";
+			reg = <0x5050000 0x10000>;
+			reg-names = "torrent_phy";
 
 			resets = <&serdes_wiz4 0>;
 			reset-names = "torrent_reset";
-			clocks = <&wiz4_pll0_refclk>;
-			clock-names = "refclk";
+			cclocks = <&serdes_wiz0 TI_WIZ_PLL0_REFCLK>,
+				 <&serdes_wiz0 TI_WIZ_PLL1_REFCLK>;
+			clock-names = "refclk", "refclk1";
+			assigned-clocks = <&serdes_wiz0 TI_WIZ_PLL0_REFCLK>,
+					  <&serdes_wiz0 TI_WIZ_PLL1_REFCLK>,
+					  <&serdes_wiz0 TI_WIZ_REFCLK_DIG>;
+			assigned-clock-parents = <&k3_clks 297 9>,
+						 <&k3_clks 297 9>,
+						 <&k3_clks 297 9>;
 			#address-cells = <1>;
 			#size-cells = <0>;
-			torrent_phy_dp: phy@0 {
-				reg = <0>;
-				resets = <&serdes_wiz4 1>;
-				cdns,phy-type = <PHY_TYPE_DP>;
-				cdns,num-lanes = <4>;
-				cdns,max-bit-rate = <5400>;
-				#phy-cells = <0>;
-			};
 		};
 	};
 
