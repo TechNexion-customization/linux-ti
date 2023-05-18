@@ -1071,7 +1071,7 @@
 
 			resets = <&serdes_wiz4 0>;
 			reset-names = "torrent_reset";
-			cclocks = <&serdes_wiz0 TI_WIZ_PLL0_REFCLK>,
+			clocks = <&serdes_wiz0 TI_WIZ_PLL0_REFCLK>,
 				 <&serdes_wiz0 TI_WIZ_PLL1_REFCLK>;
 			clock-names = "refclk", "refclk1";
 			assigned-clocks = <&serdes_wiz0 TI_WIZ_PLL0_REFCLK>,
