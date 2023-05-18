@@ -66,24 +66,24 @@
 &cpsw0_port6 {
 	phy-mode = "sgmii";
 	mac-address = [00 00 00 00 00 00];
-	phys = <&cpsw0_phy_gmii_sel 6>;
-	phy-names = "portmode";
+	phys = <&cpsw0_phy_gmii_sel 6>, <&serdes4_sgmii_link>;
+	phy-names = "portmode", "serdes-phy";
 	phy-handle = <&cpsw9g_phy1>;
 };
 
 &cpsw0_port7 {
 	phy-mode = "sgmii";
 	mac-address = [00 00 00 00 00 00];
-	phys = <&cpsw0_phy_gmii_sel 7>;
-	phy-names = "portmode";
+	phys = <&cpsw0_phy_gmii_sel 7>, <&serdes4_sgmii_link>;
+	phy-names = "portmode", "serdes-phy";
 	phy-handle = <&cpsw9g_phy2>;
 };
 
 &cpsw0_port8 {
 	phy-mode = "sgmii";
 	mac-address = [00 00 00 00 00 00];
-	phys = <&cpsw0_phy_gmii_sel 8>;
-	phy-names = "portmode";
+	phys = <&cpsw0_phy_gmii_sel 8>, <&serdes4_sgmii_link>;
+	phy-names = "portmode", "serdes-phy";
 	phy-handle = <&cpsw9g_phy3>;
 };
 
