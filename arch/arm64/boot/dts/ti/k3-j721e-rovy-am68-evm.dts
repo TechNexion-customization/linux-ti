@@ -73,6 +73,17 @@
 		regulator-boot-on;
 	};
 
+	exp_3v3: fixedregulator-exp3v3 {
+		/* expansion 3.3V supply, output of MPQ8633 */
+		compatible = "regulator-fixed";
+		regulator-name = "exp_3v3";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		vin-supply = <&evm_12v0>;
+		regulator-always-on;
+		regulator-boot-on;
+	};
+
 	vsys_io_3v3: fixedregulator-vsysio3v3 {
 		/* Output from SOM */
 		compatible = "regulator-fixed";
@@ -90,7 +101,7 @@
 		regulator-name = "vsys_io_1v8";
 		regulator-min-microvolt = <1800000>;
 		regulator-max-microvolt = <1800000>;
-		vin-supply = <&vsys_3v3>;
+		vin-supply = <&exp_3v3>;
 		regulator-always-on;
 		regulator-boot-on;
 	};
@@ -224,27 +235,98 @@
 		};
 	};
 
-	transceiver1: can-phy0 { /* SOC_CAN_A */
+	transceiver_can_a: phy-can-a { /* SOC_CAN_A */
 		compatible = "ti,tcan1042"; /* tcan1462 */
 		#phy-cells = <0>;
 		max-bitrate = <5000000>;
 		standby-gpios = <&tca9555_21 12 GPIO_ACTIVE_HIGH>;
 	};
 
-	transceiver2: can-phy1 { /* SOC_CAN_B */
+	transceiver_can_b: phy-can-b { /* SOC_CAN_B */
 		compatible = "ti,tcan1042"; /* tcan1462 */
 		#phy-cells = <0>;
 		max-bitrate = <5000000>;
 		standby-gpios = <&tca9555_21 13 GPIO_ACTIVE_HIGH>;
 	};
 
-	transceiver3: can-phy2 { /* MCU_CAN0 */
+	transceiver_mcu_can0: phy-mcu-can-0 { /* MCU_CAN0 */
 		compatible = "ti,tcan1042"; /* tcan1462 */
 		#phy-cells = <0>;
 		max-bitrate = <5000000>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&mcu_mcan0_gpio_pins_default>;
 		standby-gpios = <&wkup_gpio0 33 GPIO_ACTIVE_HIGH>;
+	};
+
+	/* Dummy tranceivers to activate and test the STB GPIOs */
+
+	transceiver_can_c: phy-can-c { /* SOC_CAN_C dummy transceiver */
+		compatible = "ti,tcan1042"; /* tcan1462 */
+		#phy-cells = <0>;
+		max-bitrate = <5000000>;
+		standby-gpios = <&tca9555_21 14 GPIO_ACTIVE_HIGH>;
+	};
+
+	transceiver_can_d: phy-can-d { /* SOC_CAN_D dummy transceiver */
+		compatible = "ti,tcan1042"; /* tcan1462 */
+		#phy-cells = <0>;
+		max-bitrate = <5000000>;
+		standby-gpios = <&tca9555_21 15 GPIO_ACTIVE_HIGH>;
+	};
+
+	transceiver_can_e: phy-can-e { /* SOC_CAN_E dummy transceiver */
+		compatible = "ti,tcan1042"; /* tcan1462 */
+		#phy-cells = <0>;
+		max-bitrate = <5000000>;
+		standby-gpios = <&tca9555_22 4 GPIO_ACTIVE_HIGH>;
+	};
+
+	transceiver_can_f: phy-can-f { /* SOC_CAN_F dummy transceiver */
+		compatible = "ti,tcan1042";
+		#phy-cells = <0>;
+		max-bitrate = <5000000>;
+		standby-gpios = <&tca9555_22 5 GPIO_ACTIVE_HIGH>;
+	};
+
+	transceiver_can_g: phy-can-g { /* SOC_CAN_G dummy transceiver */
+		compatible = "ti,tcan1042";
+		#phy-cells = <0>;
+		max-bitrate = <5000000>;
+		standby-gpios = <&tca9555_22 6 GPIO_ACTIVE_HIGH>;
+	};
+
+	transceiver_can_h: phy-can-h { /* SOC_CAN_H dummy transceiver */
+		compatible = "ti,tcan1042";
+		#phy-cells = <0>;
+		max-bitrate = <5000000>;
+		standby-gpios = <&tca9555_22 7 GPIO_ACTIVE_HIGH>;
+	};
+
+	transceiver_mcu_can1: phy-mcu-can-1 { /* MCU_CAN1 dummy transceiver */
+		compatible = "ti,tcan1042";
+		#phy-cells = <0>;
+		max-bitrate = <5000000>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&mcu_mcan1_gpio_pins_default>;
+		standby-gpios = <&wkup_gpio0 31 GPIO_ACTIVE_HIGH>;
+	};
+
+	mcu_leds {
+		compatible = "gpio-leds";
+		pinctrl-names = "default";
+		pinctrl-0 = <&mcu_user_leds_gpio_pins_default>;
+
+		mcu_user_led0 {
+			gpios = <&wkup_gpio0 34 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "none";
+			default-state = "off";
+		};
+
+		mcu_user_led1 {
+			gpios = <&wkup_gpio0 35 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "none";
+			default-state = "off";
+		};
 	};
 };
 
@@ -384,6 +466,19 @@
 	mcu_mcan0_gpio_pins_default: mcu-mcan0-gpio-pins-default {
 		pinctrl-single,pins = <
 			J721E_WKUP_IOPAD(0x44, PIN_OUTPUT, 7) /* (G22) MCU_OSPI1_D1.WKUP_GPIO0_33 */
+		>;
+	};
+
+	mcu_mcan1_gpio_pins_default: mcu-mcan1-gpio-pins-default {
+		pinctrl-single,pins = <
+			J721E_WKUP_IOPAD(0x3c, PIN_OUTPUT, 7) /* (B23) MCU_OSPI1_DQS.WKUP_GPIO0_31 */
+		>;
+	};
+
+	mcu_user_leds_gpio_pins_default: mcu-user-leds-gpio-pins-default {
+		pinctrl-single,pins = <
+			J721E_WKUP_IOPAD(0x48, PIN_OUTPUT, 7) /* (D23) MCU_OSPI1_D2.WKUP_GPIO0_34 */
+			J721E_WKUP_IOPAD(0x4c, PIN_OUTPUT, 7) /* (C23) MCU_OSPI1_D3.WKUP_GPIO0_35 */
 		>;
 	};
 };
@@ -760,15 +855,43 @@
 };
 
 &main_mcan0 { /* SOC_CAN_A */
-	phys = <&transceiver1>;
+	phys = <&transceiver_can_a>;
 };
 
 &main_mcan1 { /* SOC_CAN_B */
-	phys = <&transceiver2>;
+	phys = <&transceiver_can_b>;
+};
+
+&main_mcan4 { /* SOC_CAN_C */
+	phys = <&transceiver_can_c>;
+};
+
+&main_mcan5 { /* SOC_CAN_D */
+	phys = <&transceiver_can_d>;
+};
+
+&main_mcan6 { /* SOC_CAN_E */
+	phys = <&transceiver_can_e>;
+};
+
+&main_mcan7 { /* SOC_CAN_F */
+	phys = <&transceiver_can_f>;
+};
+
+&main_mcan8 { /* SOC_CAN_G */
+	phys = <&transceiver_can_g>;
+};
+
+&main_mcan8 { /* SOC_CAN_H */
+	phys = <&transceiver_can_h>;
 };
 
 &mcu_mcan0 { /* MCU_CAN0 */
-	phys = <&transceiver3>;
+	phys = <&transceiver_mcu_can0>;
+};
+
+&mcu_mcan1 { /* MCU_CAN1 */
+	phys = <&transceiver_mcu_can1>;
 };
 
 &csi0_port0 {
