@@ -964,8 +964,7 @@
 		clocks = <&k3_clks 297 1>, <&k3_clks 297 9>, <&cmn_refclk>;
 		clock-names = "fck", "core_ref_clk", "ext_ref_clk";
 		assigned-clocks = <&k3_clks 297 9>;
-		assigned-clock-parents = <&k3_clks 297 10>;
-		assigned-clock-rates = <19200000>;
+		assigned-clock-parents = <&k3_clks 297 13>;
 		num-lanes = <4>;
 		#reset-cells = <1>;
 		#clock-cells = <1>;
