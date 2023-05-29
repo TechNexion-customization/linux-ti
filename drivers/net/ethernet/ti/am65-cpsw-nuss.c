@@ -2955,7 +2955,7 @@ static const struct am65_cpsw_pdata j7200_cpswxg_pdata = {
 };
 
 static const struct am65_cpsw_pdata j721e_cpswxg_pdata = {
-	.quirks = 0,
+	.quirks = AM65_CPSW_QUIRK_I2027_NO_TX_CSUM,
 	.ale_dev_id = "am64-cpswxg",
 	.fdqring_mode = K3_RINGACC_RING_MODE_MESSAGE,
 	.extra_modes = BIT(PHY_INTERFACE_MODE_QSGMII) | BIT(PHY_INTERFACE_MODE_SGMII),
