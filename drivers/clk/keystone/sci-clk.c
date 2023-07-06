@@ -176,13 +176,28 @@ static int sci_clk_determine_rate(struct clk_hw *hw,
 		return 0;
 	}
 
+	/* Check for exact frequency first */
 	ret = clk->provider->ops->get_best_match_freq(clk->provider->sci,
 						      clk->dev_id,
 						      clk->clk_id,
-						      req->min_rate,
 						      req->rate,
-						      req->max_rate,
+						      req->rate,
+						      req->rate,
 						      &new_rate);
+
+	if (ret) {
+		dev_dbg(clk->provider->dev,
+			"exact determine-rate failed for dev=%d, clk=%d, ret=%d\n",
+			clk->dev_id, clk->clk_id, ret);
+		ret = clk->provider->ops->get_best_match_freq(clk->provider->sci,
+							clk->dev_id,
+							clk->clk_id,
+							req->min_rate,
+							req->rate,
+							req->max_rate,
+							&new_rate);
+	}
+
 	if (ret) {
 		dev_err(clk->provider->dev,
 			"determine-rate failed for dev=%d, clk=%d, ret=%d\n",
@@ -211,10 +226,22 @@ static int sci_clk_set_rate(struct clk_hw *hw, unsigned long rate,
 			    unsigned long parent_rate)
 {
 	struct sci_clk *clk = to_sci_clk(hw);
+	int ret;
 
-	return clk->provider->ops->set_freq(clk->provider->sci, clk->dev_id,
-					    clk->clk_id, rate / 10 * 9, rate,
-					    rate / 10 * 11);
+	/* Try setting exact frequency first */
+	ret = clk->provider->ops->set_freq(clk->provider->sci, clk->dev_id,
+					   clk->clk_id, rate, rate,
+					   rate);
+	if (ret) {
+		dev_dbg(clk->provider->dev,
+			"exact set-rate failed for dev=%d, clk=%d, ret=%d\n",
+			clk->dev_id, clk->clk_id, ret);
+		return clk->provider->ops->set_freq(clk->provider->sci, clk->dev_id,
+						    clk->clk_id, rate / 10 * 9, rate,
+						    rate / 10 * 11);
+	}
+
+	return ret;
 }
 
 /**
