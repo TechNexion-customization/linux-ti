@@ -4481,7 +4481,7 @@ static const struct drm_display_mode boe_tv080wum_nl0_mode = {
 
 /* Richard */
 /* VXT VL101-12880YL-C01_spec.pdf */
-static const struct drm_display_mode vizionpanel_mode = {
+static const struct drm_display_mode vizionpanel_10112880_mode = {
 	.clock = 66600,
 	.hdisplay = 1280,
 	.hsync_start = 1280 + 40,
@@ -4504,9 +4504,9 @@ static const struct drm_display_mode vizionpanel_mode = {
 	.flags = DRM_MODE_FLAG_NVSYNC | DRM_MODE_FLAG_NHSYNC,
 };
 
-static const struct panel_desc_dsi vizionpanel = {
+static const struct panel_desc_dsi vizionpanel_10112880 = {
 	.desc = {
-		.modes = &vizionpanel_mode,
+		.modes = &vizionpanel_10112880_mode,
 		.num_modes = 1,
 		.bpc = 8,
 		.size = {
@@ -4690,8 +4690,8 @@ static const struct of_device_id dsi_of_match[] = {
 		.compatible = "boe,tv080wum-nl0",
 		.data = &boe_tv080wum_nl0
 	}, {
-		.compatible = "tn,vizionpanel",
-		.data = &vizionpanel
+		.compatible = "tn,vizionpanel_10112880",
+		.data = &vizionpanel_10112880
 	}, {
 		.compatible = "lg,ld070wx3-sl01",
 		.data = &lg_ld070wx3_sl01
