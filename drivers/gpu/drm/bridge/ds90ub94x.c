@@ -28,36 +28,38 @@ struct i2c_config{
 struct i2c_config ds90ub941_probe_config[] = {
 	{0x01, 0x0F}, //Reset DSI/DIGITLE
 
-	{0x03, 0xBA}, //Enable FPD-Link I2C pass through
+	{0x03, 0x9A}, //Enable FPD-Link I2C pass through
 	{0x1E, 0x01}, //Select FPD-Link III Port 0
 	{0x5B, 0x21}, //FPD3_TX_MODE=single, Reset PLL
 	{0x4F, 0x8C}, //DSI Continuous Clock Mode,DSI 4 lanes
 
-	{0x40, 0x04},
-	{0x41, 0x05},
-	{0x42, 0x14},
 	{0x01, 0x00}, //Release DSI/DIGITLE reset
 
-	{0x07, 0x54}, //SlaveID_0: touch panel
-	{0x08, 0x54}, //SlaveAlias_0: touch panel
+	{0x07, 0x54}, //SlaveID_0: touch panel, 0x2A << 1
+	{0x08, 0x54}, //SlaveAlias_0: touch panel, 0x2A << 1
+	{0x70, 0xAC}, //SlaveID_1: EEPROM, 0x56 << 1
+	{0x77, 0xAC}, //SlaveAlias_1: EEPROM, 0x56 << 1
 
-	{0x30, 0x01}, //REM_INTB_CTRL: port 0 remote interrupt
+	{0xC6, 0x21}, //REM_INTB the same as INTB_IN on UB948, Global Interrupt Enable
 };
 
 struct i2c_config ds90ub948_probe_config[] = {
 	{0x01, 0x01}, //ds90ub948 reset
 	{0x49, 0x62}, //Set FPD_TX_MODE, MAPSEL=1(SPWG), Single OLDI output
 	{0x34, 0x02}, //Select FPD-Link III Port 0, GPIOx instead of D_GPIOx
+
+	{0x26, 0x19}, //SCL_HIGH_TIME: 1.5 us (50 ns * 0x19)
+	{0x27, 0x19}, //SCL_LOW_TIME: 1.5 us (50 ns * 0x19)
+
 	{0x1D, 0x19}, //GPIO0, MIPI_BL_EN
 	{0x1E, 0x99}, //GPIO1, MIPI_VDDEN; GPIO2, MIPI_BL_PWM
 
-	{0x34, 0x02}, //Reset touch interrupt
-	{0x1F, 0x09},
+	{0x1F, 0x09}, //Reset touch interrupt
 
-	{0x08, 0x54}, //SlaveID_0: touch panel
-	{0x10, 0x54}, //SlaveAlias_0: touch panel
-
-	{0xC6, 0x21}, //INTB: enable INTB_IN on remote DES
+	{0x08, 0x54}, //TargetID_0: touch panel, 0x2A << 1
+	{0x10, 0x54}, //TargetALIAS_0: touch panel, 0x2A << 1
+	{0x09, 0xAC}, //TargetID_1: EEPROM, 0x56 << 1
+	{0x11, 0xAC}, //TargetALIAS_1: EEPROM, 0x56 << 1
 };
 
 static int ds90ub94x_init(struct ds90ub94x *ds90ub94x)
