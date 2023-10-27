@@ -17,7 +17,7 @@ struct sensor {
 	struct media_pad pad;
 	struct v4l2_mbus_framefmt fmt;
 	struct i2c_client *i2c_client;
-#ifndef __FAKE__
+#ifdef __FAKE__
 	void *otp_flash_instance;
 #else
 	struct otp_flash *otp_flash_instance;
@@ -826,7 +826,7 @@ static int sensor_try_on(struct sensor *instance)
 
 static int sensor_load_bootdata(struct sensor *instance)
 {
-#ifndef __FAKE__
+#ifdef __FAKE__
 	struct device *dev = &instance->i2c_client->dev;
 	int index = 0;
 	size_t len = 0;
@@ -983,10 +983,7 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 	int pixel_rate;
 	int ret;
 	int retry_f;
-#ifdef __FAKE__
-	struct header_ver2 *header;
 	int i;
-#endif
 
 	dev_info(&client->dev, "%s() device node: %s\n",
 				__func__, client->dev.of_node->full_name);
@@ -1077,15 +1074,15 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 			// retry_f |= 0x04 ;
 			return -EINVAL;
 		}
-#ifdef __FAKE__
-		header = instance->otp_flash_instance->header_data;
+#ifndef __FAKE__
 		for(i = 0 ; i < ARRAY_SIZE(ap1302_sensor_table); i++)
 		{
-			if (strcmp((const char*)header->product_name, ap1302_sensor_table[i].sensor_name) == 0)
+			if (strcmp((const char*)instance->otp_flash_instance->product_name, ap1302_sensor_table[i].sensor_name) == 0)
 				break;
 		}
 		instance->selected_sensor = i;
-		dev_dbg(dev, "selected_sensor:%d, sensor_name:%s\n", i, header->product_name);
+		dev_dbg(dev, "selected_sensor:%d, sensor_name:%s\n", i, instance->otp_flash_instance->product_name);
+
 #endif
 		if(sensor_load_bootdata(instance) != 0) {
 			dev_err(dev, "load bootdata failed\n");
