@@ -1,4 +1,4 @@
-// #define DEBUG
+#define DEBUG
 #include <linux/i2c.h>
 #include "otp_flash.h"
 #ifdef __FAKE__
@@ -88,20 +88,29 @@ size_t ap1302_otp_flash_get_pll_section(struct otp_flash *instance, u8 *data)
 }
 #else
 #include <linux/nvmem-consumer.h>
-/*
-header Version 2 : {
-	uint8 header_version
-	uint16 content_offset //content_offset may not be equal to the size of header
-	uint8 product_name[64]
-	uint8 product_version
-	uint8 lens_name[64]
-	uint8 lens_version
-	uint8 content_version
-	uint32 content_checksum
-	uint32 content_len
-	uint16 pll_bootdata_len
+
+int get_flash_id(struct otp_flash *instance)
+{
+	struct device_node *flash_node;
+	struct device *dev = instance->dev;
+	int flash_id;
+	int ret = 0;
+	flash_node = of_parse_phandle(dev->of_node, "nvmem", 0);
+	if (flash_node == NULL) {
+		dev_err(dev, "missing nvmem handle\n");
+		return -EINVAL;
+	}
+
+	ret = of_property_read_u32(flash_node, "reg", &flash_id);
+	if (ret) {
+		dev_err(dev, "invalid flash id on %pOF\n", flash_node);
+		return ret;
+	}
+	dev_dbg(dev, "flash id: 0x%02x\n", flash_id);
+	instance->flash_id = flash_id;
+
+	return ret;
 }
-*/
 
 struct otp_flash *ap1302_otp_flash_init(struct device *dev)
 {
@@ -116,6 +125,8 @@ struct otp_flash *ap1302_otp_flash_init(struct device *dev)
 		return ERR_PTR(-EINVAL);
 	}
 	instance->dev = dev;
+
+	get_flash_id(instance);
 
 	instance->nvmem = devm_nvmem_device_get(dev, "calib-data");
 	if (IS_ERR(instance->nvmem)) {

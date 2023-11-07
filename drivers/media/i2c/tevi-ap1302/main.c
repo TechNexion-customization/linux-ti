@@ -81,6 +81,11 @@
 #define AP1302_FLICK_CTRL_FRC_OVERRIDE_UPPER_ET	BIT(3)
 #define AP1302_FLICK_CTRL_FRC_EN				BIT(2)
 #define AP1302_FLICK_CTRL_MODE_MASK				(0x03)
+#define AP1302_FLICK_CTRL_ETC_IHDR_UP			BIT(6)
+#define AP1302_FLICK_CTRL_ETC_DIS				BIT(5)
+#define AP1302_FLICK_CTRL_FRC_OVERRIDE_MAX_ET	BIT(4)
+#define AP1302_FLICK_CTRL_FRC_OVERRIDE_UPPER_ET	BIT(3)
+#define AP1302_FLICK_CTRL_FRC_EN				BIT(2)
 #define AP1302_FLICK_CTRL_MODE_DISABLED         (0U << 0)
 #define AP1302_FLICK_CTRL_MODE_MANUAL           (1U << 0)
 #define AP1302_FLICK_CTRL_MODE_AUTO             (2U << 0)
@@ -89,6 +94,8 @@
 #define AP1302_FLICK_CTRL_MODE_60HZ             (AP1302_FLICK_CTRL_FREQ(60) | AP1302_FLICK_CTRL_MODE_MANUAL)
 #define AP1302_FLICK_MODE_DISABLED_IDX			(0U << 0)
 #define AP1302_FLICK_MODE_ENABLED_IDX			(3U << 0)
+
+#define V4L2_CID_SENSOR_FLASH_ID            (V4L2_CID_USER_BASE + 44)
 // TODO This should go in v4l2-controls.h after V4L2_CID_USER_CCS_BASE
 /* The base for the AP1302 driver controls.
  * We reserve 32 controls for this driver. */
@@ -116,6 +123,7 @@ struct sensor {
 	struct gpio_desc *standby_gpio;
 	u8 selected_mode;
 	u8 selected_sensor;
+	u8 flash_id;
 	char *sensor_name;
 
 	struct mutex lock;	/* Protects formats */
@@ -1097,7 +1105,9 @@ static int ops_set_flick_mode(struct sensor *instance, s32 mode)
 		val = AP1302_FLICK_CTRL_MODE_60HZ;
 		break;
 	case 3:
-		val = AP1302_FLICK_CTRL_MODE_AUTO;
+		val = AP1302_FLICK_CTRL_MODE_AUTO |
+				AP1302_FLICK_CTRL_FRC_OVERRIDE_UPPER_ET |
+				AP1302_FLICK_CTRL_FRC_EN;
 		break;
 	default:
 		val = AP1302_FLICK_CTRL_MODE_DISABLED;
@@ -1233,6 +1243,9 @@ static int ops_s_ctrl(struct v4l2_ctrl *ctrl)
 	case V4L2_CID_ZOOM_ABSOLUTE:
 		return ops_set_zoom_target(instance, ctrl->val);
 
+	case V4L2_CID_SENSOR_FLASH_ID:
+		return 0;
+
 	case V4L2_CID_PIXEL_RATE:
 		return ops_set_pixel_rate(instance, ctrl->val);
 
@@ -1301,6 +1314,10 @@ static int ops_g_ctrl(struct v4l2_ctrl *ctrl)
 
 	case V4L2_CID_ZOOM_ABSOLUTE:
 		return ops_get_zoom_target(instance, &ctrl->val);
+
+	case V4L2_CID_SENSOR_FLASH_ID:
+		ctrl->val = instance->otp_flash_instance->flash_id;
+		return 0;
 
 	case V4L2_CID_PIXEL_RATE:
 		return ops_get_pixel_rate(instance, &ctrl->val);
@@ -1491,6 +1508,16 @@ static const struct v4l2_ctrl_config ops_ctrls[] = {
 		.max = 0x800,
 		.step = 0x1,
 		.def = 0x100,
+	},
+	{
+		.ops = &sensor_ctrl_ops,
+		.id = V4L2_CID_SENSOR_FLASH_ID,
+		.name = "Sensor_Flash_ID",
+		.type = V4L2_CTRL_TYPE_INTEGER,
+		.min = 0x0,
+		.max = 0x7F,
+		.step = 0x1,
+		.def = 0x54,
 	},
 	{
 		.ops = &sensor_ctrl_ops,
