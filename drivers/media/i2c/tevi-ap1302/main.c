@@ -111,12 +111,7 @@ struct sensor {
 	struct media_pad pad;
 	struct v4l2_mbus_framefmt fmt;
 	struct i2c_client *i2c_client;
-#ifdef __FAKE__
-	void *otp_flash_instance;
-#else
 	struct otp_flash *otp_flash_instance;
-#endif
-
 	struct gpio_desc *reset_gpio;
 	struct gpio_desc *host_power_gpio;
 	struct gpio_desc *device_power_gpio;
@@ -397,10 +392,6 @@ static int ops_set_stream(struct v4l2_subdev *sub_dev, int enable)
 
 	return ret;
 }
-
-// static const struct v4l2_ctrl_ops ap1302_ctrl_ops = {
-// 	.s_ctrl = ops_s_ctrl,
-// };
 
 static void ops_init_formats(struct v4l2_subdev_state *state)
 {
@@ -1082,6 +1073,7 @@ static int ops_get_ae_mode(struct sensor *instance, s32 *mode)
 	}
 	return 0;
 }
+
 static const char * const flick_mode_strings[] = {
 	"Disabled",
 	"50 Hz",
@@ -1549,7 +1541,7 @@ static int ops_ctrls_init(struct sensor *instance)
 		ret = ops_g_ctrl(ctrl);
 		if (!ret && ctrl->default_value != ctrl->val) {
 			// Updating default value based on firmware values
-			dev_info(&instance->i2c_client->dev,"Ctrl '%s' default value updated from %lld to %d\n",
+			dev_dbg(&instance->i2c_client->dev,"Ctrl '%s' default value updated from %lld to %d\n",
 					ctrl->name, ctrl->default_value, ctrl->val);
 			ctrl->default_value = ctrl->val;
 			ctrl->cur.val = ctrl->val;
@@ -1837,74 +1829,6 @@ static int sensor_try_on(struct sensor *instance)
 
 static int sensor_load_bootdata(struct sensor *instance)
 {
-#ifdef __FAKE__
-	struct device *dev = &instance->i2c_client->dev;
-	int index = 0;
-	size_t len = 0;
-	size_t pll_len = 0;
-	u16 otp_data;
-	u16 *bootdata_temp_area;
-	u16 checksum;
-	int i;
-	const int len_each_time = 1024;
-
-	bootdata_temp_area = devm_kzalloc(dev,
-					  len_each_time + 2,
-					  GFP_KERNEL);
-	if (bootdata_temp_area == NULL) {
-		dev_err(dev, "allocate memory failed\n");
-		return -EINVAL;
-	}
-
-	checksum = ap1302_otp_flash_get_checksum(instance->otp_flash_instance);
-
-//load pll
-	bootdata_temp_area[0] = cpu_to_be16(BOOT_DATA_START_REG);
-	pll_len = ap1302_otp_flash_get_pll_section(instance->otp_flash_instance,
-					    (u8 *)(&bootdata_temp_area[1]));
-	dev_dbg(dev, "load pll data of length [%zu] into register [%x]\n",
-		pll_len, BOOT_DATA_START_REG);
-	sensor_i2c_write_bust(instance->i2c_client, (u8 *)bootdata_temp_area, pll_len + 2);
-	sensor_i2c_write_16b(instance->i2c_client, 0x6002, 2);
-	msleep(1);
-
-	//load bootdata part1
-	bootdata_temp_area[0] = cpu_to_be16(BOOT_DATA_START_REG + pll_len);
-	len = ap1302_otp_flash_read(instance->otp_flash_instance,
-			     (u8 *)(&bootdata_temp_area[1]),
-			     pll_len, len_each_time - pll_len);
-	dev_dbg(dev, "load data of length [%zu] into register [%zx]\n",
-		len, BOOT_DATA_START_REG + pll_len);
-	sensor_i2c_write_bust(instance->i2c_client, (u8 *)bootdata_temp_area, len + 2);
-	i = index = pll_len + len;
-
-	//load bootdata ronaming
-	while(len != 0) {
-		while(i < BOOT_DATA_WRITE_LEN) {
-			bootdata_temp_area[0] =
-				cpu_to_be16(BOOT_DATA_START_REG + i);
-			len = ap1302_otp_flash_read(instance->otp_flash_instance,
-					     (u8 *)(&bootdata_temp_area[1]),
-					     index, len_each_time);
-			if (len == 0) {
-				dev_dbg(dev, "length get zero\n");
-				break;
-			}
-
-			dev_dbg(dev,
-				"load ronaming data of length [%zu] into register [%x]\n",
-				len,
-				BOOT_DATA_START_REG + i);
-			sensor_i2c_write_bust(instance->i2c_client,
-					 (u8 *)bootdata_temp_area,
-					 len + 2);
-			index += len;
-			i += len_each_time;
-		}
-
-		i = 0;
-	}
-#else
 	struct device *dev = &instance->i2c_client->dev;
 	int index = 0;
 	size_t len = BOOT_DATA_WRITE_LEN;
@@ -1933,7 +1857,7 @@ static int sensor_load_bootdata(struct sensor *instance)
 				      len + 2);
 		index += len;
 	}
-#endif
+
 	sensor_i2c_write_16b(instance->i2c_client, 0x6002, 0xffff);
 	devm_kfree(dev, bootdata_temp_area);
 
@@ -1955,30 +1879,6 @@ static int sensor_load_bootdata(struct sensor *instance)
 
 	return 0;
 }
-
-// static int sensor_init_controls(struct sensor *instance, int pixel_rate)
-// {
-// 	int ret;
-// 	struct v4l2_ctrl_handler *ctrl_hdlr;
-
-// 	ctrl_hdlr = &instance->ctrls;
-// 	ret = v4l2_ctrl_handler_init(ctrl_hdlr, 9);
-// 	if (ret)
-// 		return ret;
-
-// 	instance->pixel_rate = v4l2_ctrl_new_std(ctrl_hdlr, &ap1302_ctrl_ops,
-// 		V4L2_CID_PIXEL_RATE,
-// 		pixel_rate,
-// 		pixel_rate, 1,
-// 		pixel_rate);
-
-// 	instance->pixel_rate->flags |= V4L2_CTRL_FLAG_READ_ONLY;
-
-// 	instance->v4l2_subdev.ctrl_handler = ctrl_hdlr;
-
-// 	//v4l2_ctrl_handler_free(ctrl_hdlr);
-// 	return 0;
-// }
 
 static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *id)
 {
@@ -2113,6 +2013,13 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 	v4l2_i2c_subdev_init(&instance->v4l2_subdev,
 			     instance->i2c_client, &sensor_subdev_ops);
 	instance->v4l2_subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE | V4L2_SUBDEV_FL_HAS_EVENTS | V4L2_SUBDEV_FL_MULTIPLEXED;
+
+	ret = ops_ctrls_init(instance);
+	if (ret) {
+		dev_err(&client->dev, "failed to init controls: %d", ret);
+		goto error_probe;
+	}
+
 	instance->pad.flags = MEDIA_PAD_FL_SOURCE;
 	instance->v4l2_subdev.entity.function = MEDIA_ENT_F_CAM_SENSOR;
 	ret = media_entity_pads_init(&instance->v4l2_subdev.entity, 1, &instance->pad);
@@ -2125,12 +2032,6 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 	if (ret != 0) {
 		dev_err(&instance->i2c_client->dev, "v4l2 register failed\n");
 		return -EINVAL;
-	}
-
-	ret = ops_ctrls_init(instance);
-	if (ret) {
-		dev_err(&client->dev, "failed to init controls: %d", ret);
-		goto error_probe;
 	}
 
 	//set something reference from DevX tool register log
