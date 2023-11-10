@@ -15,6 +15,7 @@
 #include <media/v4l2-fwnode.h>
 #include <media/v4l2-subdev.h>
 #include <media/media-entity.h>
+#include "sensor_tbls.h"
 #include "otp_flash.h"
 
 #define DRIVER_NAME "tevi-ap1302"
@@ -125,68 +126,6 @@ struct sensor {
 
 	/* V4L2 Controls */
 	struct v4l2_ctrl_handler ctrls;
-};
-
-struct resolution {
-	u16 width;
-	u16 height;
-};
-
-static struct resolution ar0144_res_list[] = {
-	{.width = 1280, .height = 800},
-};
-
-static struct resolution ar0234_res_list[] = {
-	{.width = 1920, .height = 1200},
-	{.width = 1920, .height = 1080},
-	{.width = 1280, .height = 720},
-};
-
-static struct resolution ar0521_res_list[] = {
-	{.width = 1280, .height = 720},
-	{.width = 1920, .height = 1080},
-	{.width = 2592, .height = 1944},
-};
-
-static struct resolution ar0821_res_list[] = {
-	{.width = 1280, .height = 720},
-	{.width = 1920, .height = 1080},
-	{.width = 2560, .height = 1440},
-	{.width = 3840, .height = 2160},
-};
-
-struct sensor_info {
-	const char* sensor_name;
-	const struct resolution *res_list;
-	u32 res_list_size;
-};
-
-static struct sensor_info ap1302_sensor_table[] = {
-	{
-		.sensor_name = "TEVI-AR0144",
-		.res_list = ar0144_res_list,
-		.res_list_size = ARRAY_SIZE(ar0144_res_list)
-	},
-	{
-		.sensor_name = "TEVI-AR0234",
-		.res_list = ar0234_res_list,
-		.res_list_size = ARRAY_SIZE(ar0234_res_list)
-	},
-	{
-		.sensor_name = "TEVI-AR0521",
-		.res_list = ar0521_res_list,
-		.res_list_size = ARRAY_SIZE(ar0521_res_list)
-	},
-	{
-		.sensor_name = "TEVI-AR0522",
-		.res_list = ar0521_res_list,
-		.res_list_size = ARRAY_SIZE(ar0521_res_list)
-	},
-	{
-		.sensor_name = "TEVI-AR0821",
-		.res_list = ar0821_res_list,
-		.res_list_size = ARRAY_SIZE(ar0821_res_list)
-	},
 };
 
 static int sensor_standby(struct i2c_client *client, int enable);
@@ -375,17 +314,22 @@ static int ops_set_stream(struct v4l2_subdev *sub_dev, int enable)
 	} else {
 		ret = sensor_standby(instance->i2c_client, 0);
 		if (ret == 0) {
-			dev_dbg(sub_dev->dev, "%s() width=%d, height=%d\n", __func__, 
+			int fps = ap1302_sensor_table[instance->selected_sensor].res_list[instance->selected_mode].framerates;
+			dev_dbg(sub_dev->dev, "%s() width=%d, height=%d, mode=%d\n", __func__,
 				ap1302_sensor_table[instance->selected_sensor].res_list[instance->selected_mode].width, 
-				ap1302_sensor_table[instance->selected_sensor].res_list[instance->selected_mode].height);
+				ap1302_sensor_table[instance->selected_sensor].res_list[instance->selected_mode].height,
+				ap1302_sensor_table[instance->selected_sensor].res_list[instance->selected_mode].mode);
 			sensor_i2c_write_16b(instance->i2c_client, 0x1184, 1); //ATOMIC
-			//VIDEO_WIDTH
+			//PREVIEW_SENSOR_MODE
+			sensor_i2c_write_16b(instance->i2c_client, 0x2014,
+						ap1302_sensor_table[instance->selected_sensor].res_list[instance->selected_mode].mode);
+			//PREVIEW_WIDTH
 			sensor_i2c_write_16b(instance->i2c_client, 0x2000,
 					     ap1302_sensor_table[instance->selected_sensor].res_list[instance->selected_mode].width);
 			//VIDEO_HEIGHT
 			sensor_i2c_write_16b(instance->i2c_client, 0x2002,
 					     ap1302_sensor_table[instance->selected_sensor].res_list[instance->selected_mode].height);
-			sensor_i2c_write_16b(instance->i2c_client, 0x2020, 0x1e00); //VIDEO_MAX_FPS
+			sensor_i2c_write_16b(instance->i2c_client, 0x2020, fps << 8);
 			sensor_i2c_write_16b(instance->i2c_client, 0x1184, 0xb); //ATOMIC
 		}
 	}
@@ -393,14 +337,16 @@ static int ops_set_stream(struct v4l2_subdev *sub_dev, int enable)
 	return ret;
 }
 
-static void ops_init_formats(struct v4l2_subdev_state *state)
+static void ops_init_formats(struct v4l2_subdev *sub_dev, struct v4l2_subdev_state *state)
 {
+	struct sensor *instance = container_of(sub_dev, struct sensor, v4l2_subdev);
+
 	struct v4l2_mbus_framefmt *format;
 
 	format = v4l2_state_get_stream_format(state, 0, 0);
 	format->code = MEDIA_BUS_FMT_UYVY8_2X8;
-	format->width = 1280;
-	format->height = 800;
+	format->width = ap1302_sensor_table[instance->selected_sensor].res_list[instance->selected_mode].width;
+	format->height = ap1302_sensor_table[instance->selected_sensor].res_list[instance->selected_mode].height;
 	format->field = V4L2_FIELD_NONE;
 	format->colorspace = V4L2_COLORSPACE_SRGB;
 }
@@ -435,7 +381,7 @@ static int _ap1302_set_routing(struct v4l2_subdev *sd,
 	if (ret < 0)
 		return ret;
 
-	ops_init_formats(state);
+	ops_init_formats(sd, state);
 
 	return 0;
 }
@@ -512,9 +458,9 @@ static int ops_set_routing(struct v4l2_subdev *sd,
 	ret = _ap1302_set_routing(sd, state);
 	v4l2_subdev_lock_state(state);
 
-	ret = _ap1302_set_routing(sd, state);
+	// ret = _ap1302_set_routing(sd, state);
 
-	v4l2_subdev_unlock_state(state);
+	// v4l2_subdev_unlock_state(state);
 
 	return ret;
 }
@@ -628,14 +574,24 @@ static int ops_enum_frame_interval(struct v4l2_subdev *sub_dev,
 				   struct v4l2_subdev_state *sd_state,
 				   struct v4l2_subdev_frame_interval_enum *fie)
 {
-	dev_dbg(sub_dev->dev, "%s()\n", __func__);
+	struct sensor *instance = container_of(sub_dev, struct sensor, v4l2_subdev);
+	int i;
+	dev_dbg(sub_dev->dev, "%s() %x %x %x\n", __func__,
+				fie->pad, fie->code, fie->index);
 
 	if ((fie->pad != 0) ||
 	    (fie->index != 0))
 		return -EINVAL;
 
 	fie->interval.numerator = 1;
-	fie->interval.denominator = 30;
+
+	for(i = 0 ; i < ap1302_sensor_table[instance->selected_sensor].res_list_size ; i++) {
+		if(fie->width == ap1302_sensor_table[instance->selected_sensor].res_list[i].width &&
+			fie->height == ap1302_sensor_table[instance->selected_sensor].res_list[i].height) {
+				fie->interval.denominator = ap1302_sensor_table[instance->selected_sensor].res_list[i].framerates;
+				break;
+			}
+	}
 
 	return 0;
 }
@@ -1970,16 +1926,22 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 			// retry_f |= 0x04 ;
 			return -EINVAL;
 		}
-#ifndef __FAKE__
+
 		for(i = 0 ; i < ARRAY_SIZE(ap1302_sensor_table); i++)
 		{
 			if (strcmp((const char*)instance->otp_flash_instance->product_name, ap1302_sensor_table[i].sensor_name) == 0)
 				break;
 		}
+
+		if(i >= ARRAY_SIZE(ap1302_sensor_table)) {
+			dev_err(dev, "cannot not support the product: %s\n",
+				(const char*)instance->otp_flash_instance->product_name);
+			return  -EINVAL;
+		}
+
 		instance->selected_sensor = i;
 		dev_dbg(dev, "selected_sensor:%d, sensor_name:%s\n", i, instance->otp_flash_instance->product_name);
 
-#endif
 		if(sensor_load_bootdata(instance) != 0) {
 			dev_err(dev, "load bootdata failed\n");
 			retry_f |= 0x08 ;
