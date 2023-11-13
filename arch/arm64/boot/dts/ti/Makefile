@@ -78,6 +78,8 @@ dtb-$(CONFIG_ARCH_K3) += k3-j721e-sk-csi2-ov5640.dtbo
 dtb-$(CONFIG_ARCH_K3) += k3-j721e-sk-csi2-rpi-imx219.dtbo
 dtb-$(CONFIG_ARCH_K3) += k3-j721e-sk-fusion.dtbo
 dtb-$(CONFIG_ARCH_K3) += k3-j721e-sk-rpi-hdr-ehrpwm.dtbo
+dtb-$(CONFIG_ARCH_K3) += k3-j721e-edgeai-apps.dtbo
+dtb-$(CONFIG_ARCH_K3) += k3-j721e-vision-apps.dtbo
 
 # Boards with J721s2 SoC
 dtb-$(CONFIG_ARCH_K3) += k3-am68-sk-base-board.dtb
@@ -137,3 +139,4 @@ DTC_FLAGS_k3-j721s2-common-proc-board += -@
 DTC_FLAGS_k3-j721s2-evm-fusion += -@
 DTC_FLAGS_k3-j784s4-evm += -@
 DTC_FLAGS_k3-am642-evm += -@
+DTC_FLAGS_k3-j721e-evm-virt-mac-client += -@
