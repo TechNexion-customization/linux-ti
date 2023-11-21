@@ -353,7 +353,7 @@ static int ops_set_stream(struct v4l2_subdev *sub_dev, int enable)
 		if (ret == 0) {
 			int fps = ap1302_sensor_table[instance->selected_sensor].res_list[instance->selected_mode].framerates;
 			dev_dbg(sub_dev->dev, "%s() width=%d, height=%d, mode=%d\n", __func__,
-				ap1302_sensor_table[instance->selected_sensor].res_list[instance->selected_mode].width, 
+				ap1302_sensor_table[instance->selected_sensor].res_list[instance->selected_mode].width,
 				ap1302_sensor_table[instance->selected_sensor].res_list[instance->selected_mode].height,
 				ap1302_sensor_table[instance->selected_sensor].res_list[instance->selected_mode].mode);
 			sensor_i2c_write_16b(instance->i2c_client, 0x1184, 1); //ATOMIC
@@ -501,10 +501,6 @@ static int ops_set_routing(struct v4l2_subdev *sd,
 
 	ret = _ap1302_set_routing(sd, state);
 	v4l2_subdev_lock_state(state);
-
-	// ret = _ap1302_set_routing(sd, state);
-
-	// v4l2_subdev_unlock_state(state);
 
 	return ret;
 }
@@ -1329,7 +1325,7 @@ static const struct v4l2_ctrl_config ops_ctrls[] = {
 		.ops = &sensor_ctrl_ops,
 		.id = V4L2_CID_BRIGHTNESS,
 		.name = "Brightness",
-		.type = V4L2_CTRL_TYPE_INTEGER,
+		.type = V4L2_CTRL_TYPE_INTEGER64,
 		.min = 0x0,
 		.max = 0xFFFF,
 		.step = 0x100,
@@ -1339,7 +1335,7 @@ static const struct v4l2_ctrl_config ops_ctrls[] = {
 		.ops = &sensor_ctrl_ops,
 		.id = V4L2_CID_CONTRAST,
 		.name = "Contrast",
-		.type = V4L2_CTRL_TYPE_INTEGER,
+		.type = V4L2_CTRL_TYPE_INTEGER64,
 		.min = 0x0,
 		.max = 0xFFFF,
 		.step = 0x100,
@@ -1349,7 +1345,7 @@ static const struct v4l2_ctrl_config ops_ctrls[] = {
 		.ops = &sensor_ctrl_ops,
 		.id = V4L2_CID_SATURATION,
 		.name = "Saturation",
-		.type = V4L2_CTRL_TYPE_INTEGER,
+		.type = V4L2_CTRL_TYPE_INTEGER64,
 		.min = 0x0,
 		.max = 0xFFFF,
 		.step = 0x100,
@@ -1368,7 +1364,7 @@ static const struct v4l2_ctrl_config ops_ctrls[] = {
 		.ops = &sensor_ctrl_ops,
 		.id = V4L2_CID_GAMMA,
 		.name = "Gamma",
-		.type = V4L2_CTRL_TYPE_INTEGER,
+		.type = V4L2_CTRL_TYPE_INTEGER64,
 		.min = 0x0,
 		.max = 0xFFFF,
 		.step = 0x100,
@@ -1378,7 +1374,7 @@ static const struct v4l2_ctrl_config ops_ctrls[] = {
 		.ops = &sensor_ctrl_ops,
 		.id = V4L2_CID_EXPOSURE,
 		.name = "Exposure",
-		.type = V4L2_CTRL_TYPE_INTEGER,
+		.type = V4L2_CTRL_TYPE_INTEGER64,
 		.min = 0x0,
 		.max = 0xF4240,
 		.step = 1,
@@ -1388,7 +1384,7 @@ static const struct v4l2_ctrl_config ops_ctrls[] = {
 		.ops = &sensor_ctrl_ops,
 		.id = V4L2_CID_GAIN,
 		.name = "Gain",
-		.type = V4L2_CTRL_TYPE_INTEGER,
+		.type = V4L2_CTRL_TYPE_INTEGER64,
 		.min = 0x0,
 		.max = 0xFFFF,
 		.step = 0x100,
@@ -1427,7 +1423,7 @@ static const struct v4l2_ctrl_config ops_ctrls[] = {
 		.ops = &sensor_ctrl_ops,
 		.id = V4L2_CID_WHITE_BALANCE_TEMPERATURE,
 		.name = "White_Balance_Temperature",
-		.type = V4L2_CTRL_TYPE_INTEGER,
+		.type = V4L2_CTRL_TYPE_INTEGER64,
 		.min = 0x8FC,
 		.max = 0x3A98,
 		.step = 0x1,
@@ -1437,7 +1433,7 @@ static const struct v4l2_ctrl_config ops_ctrls[] = {
 		.ops = &sensor_ctrl_ops,
 		.id = V4L2_CID_SHARPNESS,
 		.name = "Sharpness",
-		.type = V4L2_CTRL_TYPE_INTEGER,
+		.type = V4L2_CTRL_TYPE_INTEGER64,
 		.min = 0x0,
 		.max = 0xFFFF,
 		.step = 0x100,
@@ -1447,7 +1443,7 @@ static const struct v4l2_ctrl_config ops_ctrls[] = {
 		.ops = &sensor_ctrl_ops,
 		.id = V4L2_CID_BACKLIGHT_COMPENSATION,
 		.name = "Backlight_Compensation",
-		.type = V4L2_CTRL_TYPE_INTEGER,
+		.type = V4L2_CTRL_TYPE_INTEGER64,
 		.min = 0x0,
 		.max = 0xFFFF,
 		.step = 0x100,
@@ -1475,7 +1471,7 @@ static const struct v4l2_ctrl_config ops_ctrls[] = {
 		.ops = &sensor_ctrl_ops,
 		.id = V4L2_CID_PAN_ABSOLUTE,
 		.name = "Pan_Target",
-		.type = V4L2_CTRL_TYPE_INTEGER,
+		.type = V4L2_CTRL_TYPE_INTEGER64,
 		.min = 0x0,
 		.max = 0x100,
 		.step = 0x1,
@@ -1485,7 +1481,7 @@ static const struct v4l2_ctrl_config ops_ctrls[] = {
 		.ops = &sensor_ctrl_ops,
 		.id = V4L2_CID_TILT_ABSOLUTE,
 		.name = "Tilt_Target",
-		.type = V4L2_CTRL_TYPE_INTEGER,
+		.type = V4L2_CTRL_TYPE_INTEGER64,
 		.min = 0x0,
 		.max = 0x100,
 		.step = 0x1,
@@ -1495,7 +1491,7 @@ static const struct v4l2_ctrl_config ops_ctrls[] = {
 		.ops = &sensor_ctrl_ops,
 		.id = V4L2_CID_ZOOM_ABSOLUTE,
 		.name = "Zoom_Target",
-		.type = V4L2_CTRL_TYPE_INTEGER,
+		.type = V4L2_CTRL_TYPE_INTEGER64,
 		.min = 0x100,
 		.max = 0x800,
 		.step = 0x1,
@@ -1505,7 +1501,7 @@ static const struct v4l2_ctrl_config ops_ctrls[] = {
 		.ops = &sensor_ctrl_ops,
 		.id = V4L2_CID_SENSOR_FLASH_ID,
 		.name = "Sensor_Flash_ID",
-		.type = V4L2_CTRL_TYPE_INTEGER,
+		.type = V4L2_CTRL_TYPE_INTEGER64,
 		.min = 0x0,
 		.max = 0x7F,
 		.step = 0x1,
@@ -1515,7 +1511,7 @@ static const struct v4l2_ctrl_config ops_ctrls[] = {
 		.ops = &sensor_ctrl_ops,
 		.id = V4L2_CID_PIXEL_RATE,
 		.name = "Pixel rate",
-		.type = V4L2_CTRL_TYPE_INTEGER,
+		.type = V4L2_CTRL_TYPE_INTEGER64,
 		.min = AP1302_PIXEL_RATE,
 		.max = AP1302_PIXEL_RATE,
 		.step = 0x1,
