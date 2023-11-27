@@ -152,18 +152,6 @@
 			alignment = <0x1000>;
 			no-map;
 		};
-
-		main_r5fss0_core0_shared_memory_queue_region:r5f-virtual-eth-queues@ac000000 {
-			compatible = "shared-dma-pool";
-			reg = <0x00 0xac000000 0x00 0x200000>;
-			no-map;
-		};
-
-		main_r5fss0_core0_shared_memory_bufpool_region:r5f-virtual-eth-buffers@ac200000 {
-			compatible = "shared-dma-pool";
-			reg = <0x00 0xac200000 0x00 0x1e00000>;
-			no-map;
-		};
 	};
 
 	reg_cpld_jtag_switch: cpld_jtag_switch {
@@ -437,7 +425,7 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&mcu_fss0_ospi0_pins_default>;
 
-	flash@0{
+	flash@0 {
 		compatible = "jedec,spi-nor";
 		reg = <0x0>;
 		spi-tx-bus-width = <8>;
@@ -448,12 +436,57 @@
 		cdns,tchsh-ns = <60>;
 		cdns,tslch-ns = <60>;
 		cdns,read-delay = <0>;
-		#address-cells = <1>;
-		#size-cells = <1>;
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			partition@0 {
+				label = "ospi.tiboot3";
+				reg = <0x0 0x80000>;
+			};
+
+			partition@80000 {
+				label = "ospi.tispl";
+				reg = <0x80000 0x200000>;
+			};
+
+			partition@280000 {
+				label = "ospi.u-boot";
+				reg = <0x280000 0x400000>;
+			};
+
+			partition@680000 {
+				label = "ospi.env";
+				reg = <0x680000 0x20000>;
+			};
+
+			partition@6a0000 {
+				label = "ospi.env.backup";
+				reg = <0x6a0000 0x20000>;
+			};
+
+			partition@6c0000 {
+				label = "ospi.sysfw";
+				reg = <0x6c0000 0x100000>;
+			};
+
+			partition@800000 {
+				label = "ospi.rootfs";
+				reg = <0x800000 0x37c0000>;
+			};
+
+			partition@3fe0000 {
+				label = "ospi.phypattern";
+				reg = <0x3fe0000 0x20000>;
+			};
+		};
 	};
 };
 
 &mailbox0_cluster0 {
+	status = "okay";
 	interrupts = <436>;
 
 	mbox_mcu_r5fss0_core0: mbox-mcu-r5fss0-core0 {
@@ -468,6 +501,7 @@
 };
 
 &mailbox0_cluster1 {
+	status = "okay";
 	interrupts = <432>;
 
 	mbox_main_r5fss0_core0: mbox-main-r5fss0-core0 {
@@ -482,6 +516,7 @@
 };
 
 &mailbox0_cluster2 {
+	status = "okay";
 	interrupts = <428>;
 
 	mbox_main_r5fss1_core0: mbox-main-r5fss1-core0 {
@@ -496,6 +531,7 @@
 };
 
 &mailbox0_cluster3 {
+	status = "okay";
 	interrupts = <424>;
 
 	mbox_c66_0: mbox-c66-0 {
@@ -510,40 +546,13 @@
 };
 
 &mailbox0_cluster4 {
+	status = "okay";
 	interrupts = <420>;
 
 	mbox_c71_0: mbox-c71-0 {
 		ti,mbox-rx = <0 0 0>;
 		ti,mbox-tx = <1 0 0>;
 	};
-};
-
-&mailbox0_cluster5 {
-	status = "disabled";
-};
-
-&mailbox0_cluster6 {
-	status = "disabled";
-};
-
-&mailbox0_cluster7 {
-	status = "disabled";
-};
-
-&mailbox0_cluster8 {
-	status = "disabled";
-};
-
-&mailbox0_cluster9 {
-	status = "disabled";
-};
-
-&mailbox0_cluster10 {
-	status = "disabled";
-};
-
-&mailbox0_cluster11 {
-	status = "disabled";
 };
 
 &mcu_r5fss0_core0 {
@@ -561,9 +570,7 @@
 &main_r5fss0_core0 {
 	mboxes = <&mailbox0_cluster1 &mbox_main_r5fss0_core0>;
 	memory-region = <&main_r5fss0_core0_dma_memory_region>,
-			<&main_r5fss0_core0_memory_region>,
-			<&main_r5fss0_core0_shared_memory_queue_region>,
-			<&main_r5fss0_core0_shared_memory_bufpool_region>;
+			<&main_r5fss0_core0_memory_region>;
 };
 
 &main_r5fss0_core1 {
@@ -603,18 +610,21 @@
 };
 
 &main_i2c0 { /* I2C_A */
+	status = "okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&main_i2c0_pins_default>;
 	clock-frequency = <400000>;
 };
 
 &main_i2c1 { /* I2C_B */
+	status = "okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&main_i2c1_pins_default>;
 	clock-frequency = <400000>;
 };
 
 &main_i2c2 { /* I2C_C */
+	status = "okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&main_i2c2_pins_default>;
 	clock-frequency = <400000>;
@@ -626,24 +636,28 @@
 };
 
 &main_i2c4 { /* I2C_D */
+	status = "okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&main_i2c4_pins_default>;
 	clock-frequency = <400000>;
 };
 
 &main_i2c5 { /* I2C_E */
+	status = "okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&main_i2c5_pins_default>;
 	clock-frequency = <400000>;
 };
 
 &main_i2c6 { /* I2C_F */
+	status = "okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&main_i2c6_pins_default>;
 	clock-frequency = <400000>;
 };
 
 &mcu_i2c1 {
+	status = "okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&mcu_i2c1_pins_default>;
 	clock-frequency = <400000>;
@@ -653,6 +667,7 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&wkup_i2c0_pins_default>;
 	clock-frequency = <400000>;
+	status = "okay";
 
 	eeprom_som: eeprom@50 {
 		compatible = "atmel,24c512";
@@ -666,6 +681,7 @@
 };
 
 &main_spi1 { /* SPI_A */
+	status = "okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&main_spi1_pins_default>;
 	ti,pindir-d0-out-d1-in = <1>;    /* MOSI on D0, MISO on D1 */
@@ -674,6 +690,7 @@
 };
 
 &main_spi5 { /* SPI_B */
+	status = "okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&main_spi5_pins_default>;
 	ti,pindir-d0-out-d1-in = <1>;    /* MOSI on D0, MISO on D1 */
@@ -682,6 +699,7 @@
 };
 
 &main_uart0 { /* UART_A */
+	status = "okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&main_uart0_pins_default>;
 	/* Shared with ATF on this platform */
@@ -689,11 +707,13 @@
 };
 
 &main_uart1 { /* UART_B */
+	status = "okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&main_uart1_pins_default>;
 };
 
 &main_uart2 { /* UART_C */
+	status = "okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&main_uart2_pins_default>;
 };
@@ -704,6 +724,7 @@
 };
 
 &main_uart4 { /* UART_D */
+	status = "okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&main_uart4_pins_default>;
 };
@@ -734,21 +755,25 @@
 };
 
 &mcu_mcan0 { /* MCU_CAN0 */
+	status = "okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&mcu_mcan0_pins_default>;
 };
 
 &mcu_mcan1 { /* MCU_CAN1 */
+	status = "okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&mcu_mcan1_pins_default>;
 };
 
 &main_mcan0 { /* SOC_CAN_A */
+	status = "okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&main_mcan0_pins_default>;
 };
 
 &main_mcan1 { /* SOC_CAN_B */
+	status = "okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&main_mcan1_pins_default>;
 };
@@ -762,31 +787,37 @@
 };
 
 &main_mcan4 { /* SOC_CAN_C */
+	status = "okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&main_mcan4_pins_default>;
 };
 
 &main_mcan5 { /* SOC_CAN_D */
+	status = "okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&main_mcan5_pins_default>;
 };
 
 &main_mcan6 { /* SOC_CAN_E */
+	status = "okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&main_mcan6_pins_default>;
 };
 
 &main_mcan7 { /* SOC_CAN_F */
+	status = "okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&main_mcan7_pins_default>;
 };
 
 &main_mcan8 { /* SOC_CAN_G */
+	status = "okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&main_mcan8_pins_default>;
 };
 
 &main_mcan9 { /* SOC_CAN_H */
+	status = "okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&main_mcan9_pins_default>;
 };
@@ -832,6 +863,7 @@
 };
 
 &mcasp6 { /* AUD_A */
+	status = "okay";
 	#sound-dai-cells = <0>;
 
 	pinctrl-names = "default";
@@ -863,6 +895,7 @@
 };
 
 &mcasp10 { /* AUD_B */
+	status = "okay";
 	#sound-dai-cells = <0>;
 
 	pinctrl-names = "default";

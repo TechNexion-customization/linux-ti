@@ -216,53 +216,6 @@
 		};
 	};
 
-	cpsw9g_virt_mac: main_r5fss_cpsw9g_virt_mac0 {
-		compatible = "ti,j721e-cpsw-virt-mac";
-		dma-coherent;
-		ti,psil-base = <0x4a00>;
-		ti,remote-name = "mpu_1_0_ethswitch-device-0";
-		dmas = <&main_udmap 0xca00>,
-		       <&main_udmap 0xca01>,
-		       <&main_udmap 0xca02>,
-		       <&main_udmap 0xca03>,
-		       <&main_udmap 0xca04>,
-		       <&main_udmap 0xca05>,
-		       <&main_udmap 0xca06>,
-		       <&main_udmap 0xca07>,
-		       <&main_udmap 0x4a00>;
-		dma-names = "tx0", "tx1", "tx2", "tx3",
-			    "tx4", "tx5", "tx6", "tx7",
-			    "rx";
-		virt_emac_port {
-			ti,label = "virt-port";
-			/* local-mac-address = [0 0 0 0 0 0]; */
-		};
-	};
-
-	cpsw9g_virt_maconly: main-r5fss-cpsw9g-virt-mac1 {
-		compatible = "ti,j721e-cpsw-virt-mac";
-		dma-coherent;
-		ti,psil-base = <0x4a00>;
-		ti,remote-name = "mpu_1_0_ethmac-device-1";
-		dmas = <&main_udmap 0xca00>,
-		       <&main_udmap 0xca01>,
-		       <&main_udmap 0xca02>,
-		       <&main_udmap 0xca03>,
-		       <&main_udmap 0xca04>,
-		       <&main_udmap 0xca05>,
-		       <&main_udmap 0xca06>,
-		       <&main_udmap 0xca07>,
-		       <&main_udmap 0x4a00>;
-		dma-names = "tx0", "tx1", "tx2", "tx3",
-			    "tx4", "tx5", "tx6", "tx7",
-			    "rx";
-
-		virt_emac_port {
-			ti,label = "virt-port";
-			/* local-mac-address = [0 0 0 0 0 0]; */
-		};
-	};
-
 	transceiver_can_a: phy-can-a { /* SOC_CAN_A */
 		compatible = "ti,tcan1042"; /* tcan1462 */
 		#phy-cells = <0>;
@@ -340,6 +293,7 @@
 	};
 
 	mcu_leds {
+		status = "okay";
 		compatible = "gpio-leds";
 		pinctrl-names = "default";
 		pinctrl-0 = <&mcu_user_leds_gpio_pins_default>;
@@ -888,6 +842,7 @@
 };
 
 &pcie0_rc {
+	status = "okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&main_pcie_keym_rst_pins_default>;
 	reset-gpios = <&main_gpio0 21 GPIO_ACTIVE_HIGH>;
@@ -897,6 +852,7 @@
 };
 
 &pcie1_rc {
+	status="okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&main_pcie_keyb_rst_pins_default>;
 	reset-gpios = <&main_gpio0 43 GPIO_ACTIVE_HIGH>;
@@ -904,7 +860,6 @@
 	phys = <&serdes1_pcie_link>;
 	phy-names = "pcie-phy";
 	num-lanes = <2>;
-	status="okay";
 };
 
 &pcie2_rc {
@@ -914,6 +869,7 @@
 };
 
 &pcie3_rc {
+	status="okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&main_pcie_keye_rst_pins_default>;
 	reset-gpios = <&main_gpio0 45 GPIO_ACTIVE_HIGH>;
@@ -921,46 +877,55 @@
 	phys = <&serdes3_pcie_link>;
 	phy-names = "pcie-phy";
 	num-lanes = <1>;
-	status="okay";
 };
 
 &main_mcan0 { /* SOC_CAN_A */
+	status = "okay";
 	phys = <&transceiver_can_a>;
 };
 
 &main_mcan1 { /* SOC_CAN_B */
+	status = "okay";
 	phys = <&transceiver_can_b>;
 };
 
 &main_mcan4 { /* SOC_CAN_C */
+	status = "okay";
 	phys = <&transceiver_can_c>;
 };
 
 &main_mcan5 { /* SOC_CAN_D */
+	status = "okay";
 	phys = <&transceiver_can_d>;
 };
 
 &main_mcan6 { /* SOC_CAN_E */
+	status = "okay";
 	phys = <&transceiver_can_e>;
 };
 
 &main_mcan7 { /* SOC_CAN_F */
+	status = "okay";
 	phys = <&transceiver_can_f>;
 };
 
 &main_mcan8 { /* SOC_CAN_G */
+	status = "okay";
 	phys = <&transceiver_can_g>;
 };
 
 &main_mcan8 { /* SOC_CAN_H */
+	status = "okay";
 	phys = <&transceiver_can_h>;
 };
 
 &mcu_mcan0 { /* MCU_CAN0 */
+	status = "okay";
 	phys = <&transceiver_mcu_can0>;
 };
 
 &mcu_mcan1 { /* MCU_CAN1 */
+	status = "okay";
 	phys = <&transceiver_mcu_can1>;
 };
 
@@ -1001,29 +966,5 @@
 };
 
 &csi1_port4 {
-	status = "disabled";
-};
-
-&main_ehrpwm0 {
-	status = "disabled";
-};
-
-&main_ehrpwm1 {
-	status = "disabled";
-};
-
-&main_ehrpwm2 {
-	status = "disabled";
-};
-
-&main_ehrpwm3 {
-	status = "disabled";
-};
-
-&main_ehrpwm4 {
-	status = "disabled";
-};
-
-&main_ehrpwm5 {
 	status = "disabled";
 };
