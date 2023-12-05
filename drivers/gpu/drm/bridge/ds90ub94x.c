@@ -2,136 +2,114 @@
 #include <linux/module.h>
 #include <linux/of.h>
 #include <linux/delay.h>
-#include <linux/regmap.h>
 
 #define DS90UB941_I2C_ADDR 0x0c
 #define DS90UB948_I2C_ADDR 0x2c
 
-static const struct regmap_config config = {
-	.reg_bits = 8,
-	.val_bits = 8,
-	.max_register = 0xFF,
-};
-
 struct ds90ub94x {
-	struct device *dev;
-	struct regmap *regmap;
-	struct i2c_config *probe_info;
-	int i2c_config_size;
+	struct i2c_client *ds90ub941_i2c;
+	struct i2c_client *ds90ub948_i2c;
 };
 
-struct i2c_config{
-	unsigned char i2c_reg;
-	unsigned char i2c_val;
-};
+static struct ds90ub94x *g_ds90ub94x;
 
-struct i2c_config ds90ub941_probe_config[] = {
-	{0x01, 0x0F}, //Reset DSI/DIGITLE
-
-	{0x03, 0x9A}, //Enable FPD-Link I2C pass through
-	{0x1E, 0x01}, //Select FPD-Link III Port 0
-	{0x5B, 0x21}, //FPD3_TX_MODE=single, Reset PLL
-	{0x4F, 0x8C}, //DSI Continuous Clock Mode,DSI 4 lanes
-
-	{0x01, 0x00}, //Release DSI/DIGITLE reset
-
-	{0x07, 0x54}, //SlaveID_0: touch panel, 0x2A << 1
-	{0x08, 0x54}, //SlaveAlias_0: touch panel, 0x2A << 1
-	{0x70, 0xAC}, //SlaveID_1: EEPROM, 0x56 << 1
-	{0x77, 0xAC}, //SlaveAlias_1: EEPROM, 0x56 << 1
-
-	{0xC6, 0x21}, //REM_INTB the same as INTB_IN on UB948, Global Interrupt Enable
-};
-
-struct i2c_config ds90ub948_probe_config[] = {
-	{0x01, 0x01}, //ds90ub948 reset
-	{0x49, 0x62}, //Set FPD_TX_MODE, MAPSEL=1(SPWG), Single OLDI output
-	{0x34, 0x02}, //Select FPD-Link III Port 0, GPIOx instead of D_GPIOx
-
-	{0x26, 0x19}, //SCL_HIGH_TIME: 1.5 us (50 ns * 0x19)
-	{0x27, 0x19}, //SCL_LOW_TIME: 1.5 us (50 ns * 0x19)
-
-	{0x1D, 0x19}, //GPIO0, MIPI_BL_EN
-	{0x1E, 0x99}, //GPIO1, MIPI_VDDEN; GPIO2, MIPI_BL_PWM
-
-	{0x1F, 0x09}, //Reset touch interrupt
-
-	{0x08, 0x54}, //TargetID_0: touch panel, 0x2A << 1
-	{0x10, 0x54}, //TargetALIAS_0: touch panel, 0x2A << 1
-	{0x09, 0xAC}, //TargetID_1: EEPROM, 0x56 << 1
-	{0x11, 0xAC}, //TargetALIAS_1: EEPROM, 0x56 << 1
-};
-
-static int ds90ub94x_init(struct ds90ub94x *ds90ub94x)
+static void ds90ub94x_write_reg(struct i2c_client *client, u8 reg, u8 data)
 {
-	int i;
-	for ( i = 0 ; i < ds90ub94x->i2c_config_size ; i++)
-	{
-		unsigned char reg = ds90ub94x->probe_info[i].i2c_reg;
-		unsigned char val = ds90ub94x->probe_info[i].i2c_val;
-		dev_dbg(ds90ub94x->dev, "ds90ub94x %s() write num %d: reg 0x%x, value 0x%x\n",
-				__func__, i, reg, val);
+	int ret;
+	u8 b[2];
+	struct i2c_msg msg;
 
-		if (regmap_write(ds90ub94x->regmap, reg, val) < 0){
-			dev_err(ds90ub94x->dev, " regmap_write fail reg 0x%x, value 0x%x\n", reg, val);
-			return -EIO;
-		}
-		msleep(10);
-	}
-	return 0;
+	b[0] = reg;
+	b[1] = data;
+
+	msg.addr = client->addr;
+	msg.flags = 0;
+	msg.buf = b;
+	msg.len = 2;
+
+	ret = i2c_transfer(client->adapter, &msg, 1);
+	if(ret != 1)
+		printk("i2c write failed: ret=%d reg=%02x\n",ret, reg);
+}
+
+static void ds90ub94x_display_setting(void)
+{
+        printk("------------>%s, %s\r\n", __FILE__, __FUNCTION__);
+	ds90ub94x_write_reg(g_ds90ub94x->ds90ub941_i2c, 0x01, 0x0f); /* Reset DSI/DIGITLE */
+	usleep_range(5000, 6000);	/* time cannot be too short */
+        ds90ub94x_write_reg(g_ds90ub94x->ds90ub941_i2c, 0x03, 0xBA); /* Enable FPD-Link I2C pass through */
+	ds90ub94x_write_reg(g_ds90ub94x->ds90ub941_i2c, 0x1E, 0x01); /* Select FPD-Link III Port 0 */
+	ds90ub94x_write_reg(g_ds90ub94x->ds90ub941_i2c, 0x5B, 0x21); /* FPD3_TX_MODE=single, Reset PLL */
+	ds90ub94x_write_reg(g_ds90ub94x->ds90ub941_i2c, 0x4F, 0x8C); /* DSI Continuous Clock Mode,DSI 4 lanes */
+	ds90ub94x_write_reg(g_ds90ub94x->ds90ub941_i2c, 0x40, 0x04); /* Set DSI0 TSKIP_CNT value ???*/
+	ds90ub94x_write_reg(g_ds90ub94x->ds90ub941_i2c, 0x41, 0x05);
+	ds90ub94x_write_reg(g_ds90ub94x->ds90ub941_i2c, 0x42, 0x14);
+	ds90ub94x_write_reg(g_ds90ub94x->ds90ub941_i2c, 0x01, 0x00); /* Release DSI/DIGITLE reset */
+
+	ds90ub94x_write_reg(g_ds90ub94x->ds90ub948_i2c, 0x01, 0x01); /* ds90ub948 reset */
+	usleep_range(10000, 11000);	/* time cannot be too short */
+	ds90ub94x_write_reg(g_ds90ub94x->ds90ub948_i2c, 0x49, 0x62); /* Set FPD_TX_MODE, MAPSEL=1(SPWG), Single OLDI output */
+        /* Set GPIO via local I2C */
+        //ds90ub94x_write_reg(g_ds90ub94x->ds90ub948_i2c, 0x34, 0x01); /* Select FPD-Link III Port 0, GPIOx instead of D_GPIOx */
+	ds90ub94x_write_reg(g_ds90ub94x->ds90ub948_i2c, 0x34, 0x02); /* Select FPD-Link III Port 0, GPIOx instead of D_GPIOx */
+	ds90ub94x_write_reg(g_ds90ub94x->ds90ub948_i2c, 0x1D, 0x19); /* GPIO0, MIPI_BL_EN */
+	ds90ub94x_write_reg(g_ds90ub94x->ds90ub948_i2c, 0x1E, 0x99); /* GPIO1, MIPI_VDDEN; GPIO2, MIPI_BL_PWM */
+
+        /* Configure remote devcie ID in local SER */
+        #if 0
+        ds90ub94x_write_reg(g_ds90ub94x->ds90ub941_i2c, 0x7, 0xac); /* SlaveID_0: EEPROM */
+        ds90ub94x_write_reg(g_ds90ub94x->ds90ub941_i2c, 0x8, 0xac); /* SlaveAlias_0: EEPROM */
+
+	ds90ub94x_write_reg(g_ds90ub94x->ds90ub948_i2c, 0x8, 0xac); /* SlaveID_0: EEPROM */
+	ds90ub94x_write_reg(g_ds90ub94x->ds90ub948_i2c, 0x10, 0xac); /* SlaveAlias_0: EEPROM */
+	#endif
+
+        //Reset touch interrupt
+        ds90ub94x_write_reg(g_ds90ub94x->ds90ub948_i2c, 0x34, 0x02);
+        //msleep(10);
+        //ds90ub94x_write_reg(g_ds90ub94x->ds90ub948_i2c, 0x1f, 0x01);
+        //msleep(10);
+        ds90ub94x_write_reg(g_ds90ub94x->ds90ub948_i2c, 0x1f, 0x09);
+        msleep(10);
+
+        /* exc80w46 */
+        ds90ub94x_write_reg(g_ds90ub94x->ds90ub941_i2c, 0x7, 0x54); /* SlaveID_0: touch panel */
+        ds90ub94x_write_reg(g_ds90ub94x->ds90ub941_i2c, 0x8, 0x54); /* SlaveAlias_0: touch panel */
+        ds90ub94x_write_reg(g_ds90ub94x->ds90ub948_i2c, 0x8, 0x54); /* SlaveID_0: touch panel */
+        ds90ub94x_write_reg(g_ds90ub94x->ds90ub948_i2c, 0x10, 0x54); /* SlaveAlias_0: touch panel */
+#if 0
+        /* edt-ft5x06 */
+        ds90ub94x_write_reg(g_ds90ub94x->ds90ub941_i2c, 0x7, 0x70); /* SlaveID_0: touch panel */
+        ds90ub94x_write_reg(g_ds90ub94x->ds90ub941_i2c, 0x8, 0x70); /* SlaveAlias_0: touch panel */
+        ds90ub94x_write_reg(g_ds90ub94x->ds90ub948_i2c, 0x8, 0x70); /* SlaveID_0: touch panel */
+        ds90ub94x_write_reg(g_ds90ub94x->ds90ub948_i2c, 0x10, 0x70); /* SlaveAlias_0: touch panel */
+#endif
+        /* Configure remote interrupt for touch panel */
+	ds90ub94x_write_reg(g_ds90ub94x->ds90ub941_i2c, 0x30, 0x1); /* REM_INTB_CTRL: port 0 remote interrupt */
+	ds90ub94x_write_reg(g_ds90ub94x->ds90ub948_i2c, 0xC6, 0x21); /* INTB: enable INTB_IN on remote DES */
 }
 
 static int ds90ub94x_probe(struct i2c_client *client, const struct i2c_device_id *id)
 {
-	struct ds90ub94x *ds90ub941, *ds90ub948;
-	struct i2c_client *dummy_client;
-	int ret;
+	struct device *dev = &client->dev;
+	struct ds90ub94x *ds90ub94x;
 
-	ds90ub941 = devm_kzalloc(&client->dev, sizeof(struct ds90ub94x), GFP_KERNEL);
-	ds90ub948 = devm_kzalloc(&client->dev, sizeof(struct ds90ub94x), GFP_KERNEL);
-
-	if ( !ds90ub941 || !ds90ub948 )
+	ds90ub94x = devm_kzalloc(dev, sizeof(*ds90ub94x), GFP_KERNEL);
+	if (!ds90ub94x)
 		return -ENOMEM;
 
-	i2c_set_clientdata(client, ds90ub941);
-	//add new i2c_device for UB948
-	dummy_client = i2c_new_dummy_device(client->adapter, DS90UB948_I2C_ADDR);
+	ds90ub94x->ds90ub941_i2c = client;
+	ds90ub94x->ds90ub948_i2c = i2c_new_dummy_device(client->adapter, DS90UB948_I2C_ADDR);
+	if (!ds90ub94x->ds90ub948_i2c) {
+		return -ENODEV;
+	}
 
-	ds90ub941->dev = &client->dev;
-	ds90ub941->regmap = devm_regmap_init_i2c(client, &config);
-	ds90ub941->probe_info = ds90ub941_probe_config;
-	ds90ub941->i2c_config_size = ARRAY_SIZE(ds90ub941_probe_config);
+	i2c_set_clientdata(client, ds90ub94x);
 
-	ds90ub948->dev = &dummy_client->dev;
-	ds90ub948->regmap = devm_regmap_init_i2c(dummy_client, &config);
-	ds90ub948->probe_info = ds90ub948_probe_config;
-	ds90ub948->i2c_config_size = ARRAY_SIZE(ds90ub948_probe_config);
+	g_ds90ub94x = ds90ub94x;
 
-	if (IS_ERR(ds90ub941->regmap))
-		return PTR_ERR(ds90ub941->regmap);
-	else if (IS_ERR(ds90ub948->regmap))
-		return PTR_ERR(ds90ub948->regmap);
-
-	ret = ds90ub94x_init(ds90ub941);
-	if ( ret < 0 )
-		return ret;
-
-	ret = ds90ub94x_init(ds90ub948);
-	if ( ret < 0 )
-		return ret;
-
-	//read attribute to set dual lvds channel
-        if (ds90ub941->dev->of_node) {
-                struct device_node *dev_node = ds90ub941->dev->of_node;
-                if (of_property_read_bool(dev_node, "vizionpanel-dual-lvds-channel")) {
-			dev_info(ds90ub941->dev, "Using Dual channel lvds\n");
-			regmap_update_bits(ds90ub941->regmap, 0x5B, BIT(3), 1);
-			regmap_update_bits(ds90ub948->regmap, 0x49, BIT(1), 0);
-                } else
-			dev_info(ds90ub941->dev, "Using Single channel lvds\n");
-        }
-
-	dev_info(ds90ub941->dev, "ds90ub94x probe success\n");
+	/* config display */
+	ds90ub94x_display_setting();
 
 	return 0;
 }
