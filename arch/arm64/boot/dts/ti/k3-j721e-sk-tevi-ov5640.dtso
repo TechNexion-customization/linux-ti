@@ -1,0 +1,116 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * LI OV5640 MIPI Camera module.
+ *
+ * Copyright (C) 2021 Texas Instruments Incorporated - http://www.ti.com/
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+#include "k3-pinctrl.h"
+
+/ {
+	fragment@101 {
+		target-path = "/";
+
+		__overlay__ {
+			clk_ov5640_fixed: ov5640-xclk {
+				compatible = "fixed-clock";
+				#clock-cells = <0>;
+				clock-frequency = <24000000>;
+			};
+		};
+	};
+};
+
+&main_pmx0 {
+	main_rpi_cam0_pins_default: main-rpi-cam0-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x1D4, PIN_OUTPUT, 7) /* (Y3) SPI1_CS0 */
+			J721E_IOPAD(0x1D8, PIN_OUTPUT, 7) /* (W4) SPI1_CS1 */
+		>;
+	};
+
+	main_csi_mux_sel2_pins_default: main-csi-mux-sel2-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x164, PIN_OUTPUT, 7) /* (V29) RGMII5_TD2 */
+		>;
+	};
+};
+
+&main_gpio0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&main_csi_mux_sel2_pins_default>;
+
+	csi-mux-hog {
+		/* CSI_MUX_SEL_2 */
+		gpio-hog;
+		gpios = <88 GPIO_ACTIVE_HIGH>;
+		output-high;
+		line-name = "CSI_MUX_SEL_2";
+	};
+};
+
+&main_i2c3 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+
+	i2c-switch@70 {
+		compatible = "nxp,pca9543";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		reg = <0x70>;
+
+		/* CAM0 I2C */
+		cam0_i2c: i2c@0 {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0>;
+
+			ov5640_otp_0: eeprom@54 {
+				compatible = "atmel,24c64";
+				reg = <0x54>;
+				read-only;
+			};
+
+			ov5640: camera@3c {
+				compatible = "ovti,ov5640";
+				reg = <0x3c>;
+
+				pinctrl-names = "default";
+				pinctrl-0 = <&main_rpi_cam0_pins_default>;
+
+				reset-gpios = <&main_gpio0 65 GPIO_ACTIVE_LOW>;		//CSI0_RST_N_GPIO0_65
+
+				clocks = <&clk_ov5640_fixed>;
+				clock-names = "xclk";
+
+				nvmem = <&ov5640_otp_0>;
+				nvmem-names = "calib-data";
+
+				port {
+					csi2_cam0: endpoint {
+						remote-endpoint = <&csi2rx0_in_sensor>;
+						clock-lanes = <0>;
+						data-lanes = <1 2>;
+					};
+				};
+			};
+		};
+	};
+};
+
+&csi0_port0 {
+	status = "okay";
+
+	csi2rx0_in_sensor: endpoint {
+		remote-endpoint = <&csi2_cam0>;
+		bus-type = <4>; /* CSI2 DPHY. */
+		clock-lanes = <0>;
+		data-lanes = <1 2>;
+	};
+};
