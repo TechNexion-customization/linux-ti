@@ -1,0 +1,167 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * DT Overlay for CPSW9G in SGMII mode using ROVY-M2-M-SGMII with ROVY-EVM board
+ *
+ * Copyright (C) 2022 Texas Instruments Incorporated - https://www.ti.com/
+ * Copyright 2022 Technexion Ltd.
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/phy/phy.h>
+#include <dt-bindings/phy/phy-cadence.h>
+#include "k3-pinctrl.h"
+
+&{/} {
+	model = "TechNexion ROVY-4VM and EVM baseboard with 4xSGMII";
+	aliases {
+		ethernet1 = "/bus@100000/ethernet@c000000/ethernet-ports/port@5";
+		ethernet2 = "/bus@100000/ethernet@c000000/ethernet-ports/port@6";
+		ethernet3 = "/bus@100000/ethernet@c000000/ethernet-ports/port@7";
+		ethernet4 = "/bus@100000/ethernet@c000000/ethernet-ports/port@8";
+	};
+};
+
+&serdes4 {
+	serdes4_sgmii_link: phy@0 {
+		reg = <0>;
+		resets = <&serdes_wiz4 1>, <&serdes_wiz4  2>, <&serdes_wiz4 3>, <&serdes_wiz4 4>;
+		cdns,phy-type = <PHY_TYPE_SGMII>;
+		cdns,num-lanes = <4>;
+		#phy-cells = <0>;
+	};
+};
+
+&cpsw0 {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&mdio_pins_default>;
+};
+
+&cpsw0_port1 {
+	status = "disabled";
+};
+
+&cpsw0_port2 {
+	status = "disabled";
+};
+
+&cpsw0_port3 {
+	status = "disabled";
+};
+
+&cpsw0_port4 {
+	status = "disabled";
+};
+
+&cpsw0_port5 {
+	status = "okay";
+	phy-mode = "sgmii";
+	mac-address = [00 00 00 00 00 00];
+	phys = <&cpsw0_phy_gmii_sel 5>, <&serdes4_sgmii_link>;
+	phy-names = "portmode", "serdes-phy";
+	phy-handle = <&cpsw9g_phy0>;
+};
+
+&cpsw0_port6 {
+	status = "okay";
+	phy-mode = "sgmii";
+	mac-address = [00 00 00 00 00 00];
+	phys = <&cpsw0_phy_gmii_sel 6>, <&serdes4_sgmii_link>;
+	phy-names = "portmode", "serdes-phy";
+	phy-handle = <&cpsw9g_phy1>;
+};
+
+&cpsw0_port7 {
+	status = "okay";
+	phy-mode = "sgmii";
+	mac-address = [00 00 00 00 00 00];
+	phys = <&cpsw0_phy_gmii_sel 7>, <&serdes4_sgmii_link>;
+	phy-names = "portmode", "serdes-phy";
+	phy-handle = <&cpsw9g_phy2>;
+};
+
+&cpsw0_port8 {
+	status = "okay";
+	phy-mode = "sgmii";
+	mac-address = [00 00 00 00 00 00];
+	phys = <&cpsw0_phy_gmii_sel 8>, <&serdes4_sgmii_link>;
+	phy-names = "portmode", "serdes-phy";
+	phy-handle = <&cpsw9g_phy3>;
+};
+
+&cpsw9g_mdio {
+	status = "okay";
+	bus_freq = <1000000>;
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	cpsw9g_phy0: ethernet-phy@4 {
+		reg = <4>;
+		reset-gpios = <&pca9554_sgmii 0 GPIO_ACTIVE_LOW>;
+		reset-assert-us = <35000>;
+		reset-deassert-us = <75000>;
+		rtl821x,aldps-disable;
+		rtl821x,clkout-disable;
+		realtek,phy-mode-eee-disable;
+	};
+	cpsw9g_phy1: ethernet-phy@5 {
+		reg = <5>;
+		reset-gpios = <&pca9554_sgmii 1 GPIO_ACTIVE_LOW>;
+		reset-assert-us = <35000>;
+		reset-deassert-us = <75000>;
+		rtl821x,aldps-disable;
+		rtl821x,clkout-disable;
+		realtek,phy-mode-eee-disable;
+	};
+	cpsw9g_phy2: ethernet-phy@6 {
+		reg = <6>;
+		reset-gpios = <&pca9554_sgmii 2 GPIO_ACTIVE_LOW>;
+		reset-assert-us = <35000>;
+		reset-deassert-us = <75000>;
+		rtl821x,aldps-disable;
+		rtl821x,clkout-disable;
+		realtek,phy-mode-eee-disable;
+	};
+	cpsw9g_phy3: ethernet-phy@7 {
+		reg = <7>;
+		reset-gpios = <&pca9554_sgmii 3 GPIO_ACTIVE_LOW>;
+		reset-assert-us = <35000>;
+		reset-deassert-us = <75000>;
+		rtl821x,aldps-disable;
+		rtl821x,clkout-disable;
+		realtek,phy-mode-eee-disable;
+	};
+};
+
+&main_pmx0 {
+	mdio_pins_default: mdio-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x1bc, PIN_OUTPUT, 0) /* (V24) MDIO0_MDC */
+			J721E_IOPAD(0x1b8, PIN_INPUT, 0) /* (V26) MDIO0_MDIO */
+		>;
+	};
+
+	main_sgmii_phy_reset_pins_default: main-sgmii-phy-reset-pins-default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x130, PIN_OUTPUT, 7) /* (AF27) PRG0_PRU1_GPO12.GPIO0_75 */
+		>;
+	};
+};
+
+&main_i2c5 { /* I2C_E */
+	clock-frequency = <400000>;
+
+	pca9554_sgmii: pca9554_sgmii@27 {
+		compatible = "nxp,pca9554";
+		reg = <0x27>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		status = "okay";
+	};
+};
