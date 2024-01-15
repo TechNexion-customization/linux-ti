@@ -77,6 +77,7 @@ dtb-$(CONFIG_ARCH_K3) += k3-j721e-rovy-evm.dtb
 dtb-$(CONFIG_ARCH_K3) += k3-j721e-rovy-evm-mcu-uarts.dtbo
 dtb-$(CONFIG_ARCH_K3) += k3-j721e-rovy-evm-4xsgmii.dtbo
 dtb-$(CONFIG_ARCH_K3) += k3-j721e-rovy-evm-vizionpanel-vl10112880.dtbo
+dtb-$(CONFIG_ARCH_K3) += k3-j721e-rovy-evm-tevi-ap1302.dtbo
 dtb-$(CONFIG_ARCH_K3) += k3-j721e-sk.dtb
 dtb-$(CONFIG_ARCH_K3) += k3-j721e-sk-csi2-ov5640.dtbo
 dtb-$(CONFIG_ARCH_K3) += k3-j721e-sk-csi2-rpi-imx219.dtbo
