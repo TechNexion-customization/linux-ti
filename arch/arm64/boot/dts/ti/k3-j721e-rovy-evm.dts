@@ -929,6 +929,25 @@
 	phys = <&transceiver_mcu_can1>;
 };
 
+&ti_csi2rx0 {
+	status = "okay";
+	/* MIPI-CSI Connector */
+};
+
+&ti_csi2rx1 {
+	status = "okay";
+	/* MIPI-CSI Connector */
+};
+
+&dphy0 {
+	status = "okay";
+};
+
+&dphy1 {
+	status = "okay";
+};
+
+
 &csi0_port0 {
 	status = "disabled";
 };
