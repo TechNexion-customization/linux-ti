@@ -78,6 +78,7 @@ dtb-$(CONFIG_ARCH_K3) += k3-j721e-rovy-evm-mcu-uarts.dtbo
 dtb-$(CONFIG_ARCH_K3) += k3-j721e-rovy-evm-4xsgmii.dtbo
 dtb-$(CONFIG_ARCH_K3) += k3-j721e-rovy-evm-vizionpanel-vl10112880.dtbo
 dtb-$(CONFIG_ARCH_K3) += k3-j721e-rovy-evm-tevi-ap1302.dtbo
+dtb-$(CONFIG_ARCH_K3) += k3-j721e-rovy-evm-fusion.dtbo
 dtb-$(CONFIG_ARCH_K3) += k3-j721e-sk.dtb
 dtb-$(CONFIG_ARCH_K3) += k3-j721e-sk-csi2-ov5640.dtbo
 dtb-$(CONFIG_ARCH_K3) += k3-j721e-sk-csi2-rpi-imx219.dtbo
@@ -126,6 +127,14 @@ dtb-$(CONFIG_ARCH_K3) += k3-fpdlink-ov2312-0-0.dtbo \
 			 k3-fpdlink-ov2312-0-1.dtbo \
 			 k3-fpdlink-ov2312-0-2.dtbo \
 			 k3-fpdlink-ov2312-0-3.dtbo
+dtb-$(CONFIG_ARCH_K3) += k3-fpdlink-tevi-ap1302-0-0.dtbo \
+			 k3-fpdlink-tevi-ap1302-0-1.dtbo \
+			 k3-fpdlink-tevi-ap1302-0-2.dtbo \
+			 k3-fpdlink-tevi-ap1302-0-3.dtbo \
+			 k3-fpdlink-tevi-ap1302-1-0.dtbo \
+			 k3-fpdlink-tevi-ap1302-1-1.dtbo \
+			 k3-fpdlink-tevi-ap1302-1-2.dtbo \
+			 k3-fpdlink-tevi-ap1302-1-3.dtbo
 
 #Enable support for device-tree overlays
 DTC_FLAGS_k3-am62-lp-sk += -@
@@ -140,6 +149,7 @@ DTC_FLAGS_k3-am69-sk += -@
 DTC_FLAGS_k3-j7200-common-proc-board += -@
 DTC_FLAGS_k3-j721e-common-proc-board += -@
 DTC_FLAGS_k3-j721e-evm-fusion += -@
+DTC_FLAGS_k3-j721e-rovy-evm-fusion += -@
 DTC_FLAGS_k3-j721e-rovy-evm += -@
 DTC_FLAGS_k3-j721e-sk += -@
 DTC_FLAGS_k3-j721e-sk-fusion += -@
