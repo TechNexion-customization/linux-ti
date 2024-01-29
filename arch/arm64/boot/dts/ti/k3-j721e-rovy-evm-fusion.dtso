@@ -19,6 +19,49 @@
 		#clock-cells = <0>;
 		clock-frequency = <25000000>;
 	};
+
+	reg_csi0_pwr_switch: csi0_pwr_switch {
+		compatible = "regulator-fixed";
+		regulator-name = "csi0_pwr_switch";
+		pinctrl-names = "default";
+		pinctrl-0 = <&csi0_pwr_en_pins_default>;
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&main_gpio0 66 GPIO_ACTIVE_HIGH>;
+		startup-delay-us = <200000>;
+		off-on-delay-us = <200000>;
+		enable-active-high;
+		regulator-boot-on;
+	};
+
+	reg_csi1_pwr_switch: csi1_pwr_switch {
+		compatible = "regulator-fixed";
+		regulator-name = "csi1_pwr_switch";
+		pinctrl-names = "default";
+		pinctrl-0 = <&csi1_pwr_en_pins_default>;
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&main_gpio0 73 GPIO_ACTIVE_HIGH>;
+		startup-delay-us = <200000>;
+		off-on-delay-us = <200000>;
+		enable-active-high;
+		regulator-boot-on;
+	};
+};
+
+&main_pmx0 {
+
+	csi0_pwr_en_pins_default: csi0_pwr_en_pins_default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x10c, PIN_OUTPUT, 7) /* (AC25) PRG0_PRU1_GPO3.GPIO0_66 */
+		>;
+	};
+
+	csi1_pwr_en_pins_default: csi1_pwr_en_pins_default {
+		pinctrl-single,pins = <
+			J721E_IOPAD(0x128, PIN_OUTPUT, 7) /* (AA25) PRG0_PRU1_GPO10.GPIO0_73 */
+		>;
+	};
 };
 
 &main_i2c2 {
@@ -33,6 +76,8 @@
 		clock-names = "refclk";
 		i2c-alias-pool = <0x4a 0x4b 0x4c 0x4d 0x4e 0x4f 0x50 0x51 0x52 0x53 0x54 0x55 0x56 0x57 0x58 0x59>;
 		status = "okay";
+		vddio-supply = <&reg_csi0_pwr_switch>;
+		powerdown-gpios  = <&tca9555_22 0 GPIO_ACTIVE_LOW>;  /* CSI0_PDB */
 
 		ds90ub960_0_ports: ports {
 			#address-cells = <1>;
@@ -68,6 +113,8 @@
 		clocks = <&clk_fusion_25M_fixed>;
 		clock-names = "refclk";
 		i2c-alias-pool = <0x4a 0x4b 0x4c 0x4d 0x4e 0x4f 0x50 0x51 0x52 0x53 0x54 0x55 0x56 0x57 0x58 0x59>;
+        vddio-supply = <&reg_csi1_pwr_switch>;
+		powerdown-gpios  = <&tca9555_22 1 GPIO_ACTIVE_LOW>;  /*_PDB */
 
 		status = "okay";
 		ds90ub960_1_ports: ports {
