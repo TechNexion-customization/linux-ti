@@ -608,6 +608,9 @@
 		interrupt-controller;
 		#interrupt-cells = <2>;
 		status = "okay";
+		gpio-line-names = 
+		/* IO0-IO7  */ "M2_E_W_DISABLE1#", "M2_E_W_DISABLE2#", "M2_E_UART_WAKE#", "M2_B_WWAN_WAKEn", "M2_B_WAN_DISABLEn", "M2_B_PWR_OFF", "VCONN_FAULT", "USB_OTG_PWR_EN",
+		/* IO8-IO15 */ "USB_OTG_OC", "FAN_12V_EN", "SOC_IO_EN", "SOC_IO_5V_FLTn", "SOC_CANA_STB", "SOC_CANB_STB", "SOC_CANC_STB", "SOC_CAND_STB";
 	};
 
 	tca9555_22: tca9555_22@22 {
@@ -622,10 +625,13 @@
 		interrupt-controller;
 		#interrupt-cells = <2>;
 		status = "okay";
+		gpio-line-names = 
+		/* IO0-IO7  */ "CSI0_PDB", "CSI1_PDB", "CSI2_PDB", "M2_B_RESET", "SOC_CANE_STB", "SOC_CANF_STB", "SOC_CANG_STB", "SOC_CANH_STB",
+		/* IO8-IO15 */ "RTC_INTA", "1_USB_HUB_RESET", "2_USB_HUB_RESET", "MMC_WAKE#", "2_Port_0_CLKREQ_n", "SOC_IO_3V3_FLTn", "1_M2_M_TYPE0", "2_M2_M_TYPE0";
 	};
 };
 
-&main_i2c5 { /* I2C_E */
+&main_i2c5 { /* I2C_E */ 
 	clock-frequency = <400000>;
 
 	/* Power monitor for VSYS_3V3 */
