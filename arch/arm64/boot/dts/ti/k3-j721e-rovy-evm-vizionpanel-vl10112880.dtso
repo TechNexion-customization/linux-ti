@@ -20,8 +20,21 @@
 		__overlay__ {
 			model = "TechNexion ROVY-4VM and EVM baseboard with Vizionpanel 10.1 inch LVDS panel";
 
-			reg_dsi_pwr_switch: dsi_pwr_switch {
+			reg_dsi_pwr_switch: dsi_pwr_switch {  /* DSI0_3V3 */
 				regulator-always-on;
+				status = "okay";
+			};
+
+			reg_dsi0_vdden: dsi0_vdden {
+				status = "okay";
+			};
+
+			reg_dsi0_bl_en: dsi0_bl_en {
+				status = "okay";
+			};
+
+			dsi0_backlight: dsi0_backlight {
+				status = "okay";
 			};
 		};
 	};
@@ -31,7 +44,7 @@
 	#address-cells = <1>;
 	#size-cells = <0>;
 	status = "okay";
-
+/*
 	exc80w46: touchscreen@2a {
 		compatible = "eeti,exc80h60";
 		pinctrl-names = "default";
@@ -41,13 +54,15 @@
 		interrupts = <24 IRQ_TYPE_EDGE_FALLING>;
 		status = "okay";
 	};
+*/
 
 	fpdlink_dsi2lvds: ds90ub948@0c {
 		compatible = "ti,ds90ub94x";
 		reg = <0x0c>;
 		status = "okay";
-		//reset-gpios = <&pca9554_23 4 GPIO_ACTIVE_LOW>;
+		//reset-gpios = <&pca9554_dsi0_23 4 GPIO_ACTIVE_LOW>;
 	};
+
 };
 
 &dss_ports {
@@ -86,6 +101,7 @@
 	panel@0 {
 		compatible = "tn,vizionpanel_10112880";
 		reg = <0>;
+		backlight = <&dsi0_backlight>;
 		status = "okay";
 
 		port {
