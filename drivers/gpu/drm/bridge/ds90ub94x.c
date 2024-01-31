@@ -34,7 +34,6 @@ static void ds90ub94x_write_reg(struct i2c_client *client, u8 reg, u8 data)
 
 static void ds90ub94x_display_setting(void)
 {
-        printk("------------>%s, %s\r\n", __FILE__, __FUNCTION__);
 	ds90ub94x_write_reg(g_ds90ub94x->ds90ub941_i2c, 0x01, 0x0f); /* Reset DSI/DIGITLE */
 	usleep_range(5000, 6000);	/* time cannot be too short */
     ds90ub94x_write_reg(g_ds90ub94x->ds90ub941_i2c, 0x03, 0xBA); /* Enable FPD-Link I2C pass through */
@@ -44,16 +43,17 @@ static void ds90ub94x_display_setting(void)
 	ds90ub94x_write_reg(g_ds90ub94x->ds90ub941_i2c, 0x40, 0x04); /* Set DSI0 TSKIP_CNT value ???*/
 	ds90ub94x_write_reg(g_ds90ub94x->ds90ub941_i2c, 0x41, 0x05);
 	ds90ub94x_write_reg(g_ds90ub94x->ds90ub941_i2c, 0x42, 0x14);
+	ds90ub94x_write_reg(g_ds90ub94x->ds90ub941_i2c, 0x0e, 0x33);
+	ds90ub94x_write_reg(g_ds90ub94x->ds90ub941_i2c, 0x0d, 0x33);
 	ds90ub94x_write_reg(g_ds90ub94x->ds90ub941_i2c, 0x01, 0x00); /* Release DSI/DIGITLE reset */
 
 	ds90ub94x_write_reg(g_ds90ub94x->ds90ub948_i2c, 0x01, 0x01); /* ds90ub948 reset */
 	usleep_range(10000, 11000);	/* time cannot be too short */
 	ds90ub94x_write_reg(g_ds90ub94x->ds90ub948_i2c, 0x49, 0x62); /* Set FPD_TX_MODE, MAPSEL=1(SPWG), Single OLDI output */
 	/* Set GPIO via local I2C */
-	//ds90ub94x_write_reg(g_ds90ub94x->ds90ub948_i2c, 0x34, 0x01); /* Select FPD-Link III Port 0, GPIOx instead of D_GPIOx */
-	ds90ub94x_write_reg(g_ds90ub94x->ds90ub948_i2c, 0x34, 0x02); /* Select FPD-Link III Port 0, GPIOx instead of D_GPIOx */
-	ds90ub94x_write_reg(g_ds90ub94x->ds90ub948_i2c, 0x1D, 0x19); /* GPIO0, MIPI_BL_EN */
-	ds90ub94x_write_reg(g_ds90ub94x->ds90ub948_i2c, 0x1E, 0x99); /* GPIO1, MIPI_VDDEN; GPIO2, MIPI_BL_PWM */
+	ds90ub94x_write_reg(g_ds90ub94x->ds90ub948_i2c, 0x34, 0x01); /* Select FPD-Link III Port 0, GPIOx instead of D_GPIOx */
+	ds90ub94x_write_reg(g_ds90ub94x->ds90ub948_i2c, 0x1D, 0x1d); /* GPIO0, MIPI_BL_EN */
+	ds90ub94x_write_reg(g_ds90ub94x->ds90ub948_i2c, 0x1E, 0xdd); /* GPIO1, MIPI_VDDEN; GPIO2, MIPI_BL_PWM */
 
 	/* Configure remote devcie ID in local SER */
 	#if 0
